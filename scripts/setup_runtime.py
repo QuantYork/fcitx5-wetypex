@@ -120,6 +120,22 @@ def install_ui_resources(archive, data):
         for relative, member in assets.items():
             path=data/relative;path.parent.mkdir(parents=True,exist_ok=True)
             temporary=path.with_suffix(path.suffix+'.tmp');temporary.write_bytes(z.read(member));temporary.replace(path)
+        candidate_images=prefix+'candidate/icons/emoji_'
+        for member in z.namelist():
+            if member.startswith(candidate_images) and member.endswith('.png'):
+                name=member[len(prefix+'candidate/icons/'):]
+                if pathlib.PurePosixPath(name).name!=name:continue
+                path=data/'fcitx5-wetypex/ui/wechat-emoticons'/name
+                path.parent.mkdir(parents=True,exist_ok=True)
+                temporary=path.with_suffix('.png.tmp')
+                temporary.write_bytes(z.read(member));temporary.replace(path)
+    try:
+        from wechat_emoticons import install_font
+        font=install_font(archive,data)
+        print('Original WeChat emoticons installed: '+str(font))
+        print('Restart Fcitx5 to load the original emoticon font.')
+    except ImportError:
+        print('Install fontTools and Pillow to render original WeChat emoticons; text labels remain available.',file=sys.stderr)
 
 def stream_digest(stream, algorithm):
     result=hashlib.new(algorithm)

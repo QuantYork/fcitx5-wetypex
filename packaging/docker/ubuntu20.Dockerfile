@@ -11,7 +11,7 @@ RUN apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq 
     libxcb-ewmh-dev libxcb-xkb-dev libxcb-randr0-dev libxcb-util-dev \
     libxcb-keysyms1-dev libxcb-icccm4-dev libxcb-xinerama0-dev \
     libxcb-xfixes0-dev libxcb-shape0-dev libxkbfile-dev \
-    libcairo2-dev libpango1.0-dev libgdk-pixbuf2.0-dev \
+    libcairo2-dev libpango1.0-dev libgdk-pixbuf2.0-dev libfontconfig1-dev \
     libwayland-dev wayland-protocols libegl1-mesa-dev iso-codes xkb-data \
     appstream appstream-util python3 && rm -rf /var/lib/apt/lists/*
 

@@ -1,0 +1,1487 @@
+{
+  "version": 1,
+  "font_family": "WeTypeX WeChat Emoticons v1",
+  "upstream_runtime": "2.2.3.657",
+  "linux_wechat": "4.1.13.26",
+  "unsupported_aliases": [
+    "[cha]",
+    "[hahaha]",
+    "[hl]",
+    "[mask]",
+    "[ugly]",
+    "[xixi]",
+    "[哈哈哈哈]",
+    "[天真]",
+    "[小丑]",
+    "[慌了]",
+    "[窃喜]",
+    "[竊喜]",
+    "[面膜]"
+  ],
+  "entries": [
+    {
+      "asset": "emoji_0.png",
+      "codepoint": 1110016,
+      "commit": "[微笑]",
+      "aliases": [
+        "[Smile]",
+        "[微笑]"
+      ]
+    },
+    {
+      "asset": "emoji_1.png",
+      "codepoint": 1110017,
+      "commit": "[撇嘴]",
+      "aliases": [
+        "[Grimace]",
+        "[撇嘴]"
+      ]
+    },
+    {
+      "asset": "emoji_10.png",
+      "codepoint": 1110018,
+      "commit": "[尴尬]",
+      "aliases": [
+        "[Awkward]",
+        "[尴尬]",
+        "[尷尬]"
+      ]
+    },
+    {
+      "asset": "emoji_100.png",
+      "codepoint": 1110019,
+      "commit": "[激动]",
+      "aliases": [
+        "[Hooray]",
+        "[激动]",
+        "[激動]"
+      ]
+    },
+    {
+      "asset": "emoji_101.png",
+      "codepoint": 1110020,
+      "commit": "[乱舞]",
+      "aliases": [
+        "[Meditate]",
+        "[乱舞]",
+        "[亂舞]"
+      ]
+    },
+    {
+      "asset": "emoji_102.png",
+      "codepoint": 1110021,
+      "commit": "[献吻]",
+      "aliases": [
+        "[Smooch]",
+        "[献吻]",
+        "[獻吻]"
+      ]
+    },
+    {
+      "asset": "emoji_103.png",
+      "codepoint": 1110022,
+      "commit": "[左太极]",
+      "aliases": [
+        "[TaiChi L]",
+        "[左太极]",
+        "[左太極]"
+      ]
+    },
+    {
+      "asset": "emoji_104.png",
+      "codepoint": 1110023,
+      "commit": "[右太极]",
+      "aliases": [
+        "[TaiChi R]",
+        "[右太极]",
+        "[右太極]"
+      ]
+    },
+    {
+      "asset": "emoji_11.png",
+      "codepoint": 1110024,
+      "commit": "[发怒]",
+      "aliases": [
+        "[Angry]",
+        "[发怒]",
+        "[發怒]"
+      ]
+    },
+    {
+      "asset": "emoji_12.png",
+      "codepoint": 1110025,
+      "commit": "[调皮]",
+      "aliases": [
+        "[Tongue]",
+        "[調皮]",
+        "[调皮]"
+      ]
+    },
+    {
+      "asset": "emoji_13.png",
+      "codepoint": 1110026,
+      "commit": "[呲牙]",
+      "aliases": [
+        "[Grin]",
+        "[呲牙]"
+      ]
+    },
+    {
+      "asset": "emoji_14.png",
+      "codepoint": 1110027,
+      "commit": "[惊讶]",
+      "aliases": [
+        "[Surprise]",
+        "[惊讶]",
+        "[驚訝]"
+      ]
+    },
+    {
+      "asset": "emoji_15.png",
+      "codepoint": 1110028,
+      "commit": "[难过]",
+      "aliases": [
+        "[Frown]",
+        "[难过]",
+        "[難過]"
+      ]
+    },
+    {
+      "asset": "emoji_16.png",
+      "codepoint": 1110029,
+      "commit": "[酷]",
+      "aliases": [
+        "[Ruthless]",
+        "[酷]"
+      ]
+    },
+    {
+      "asset": "emoji_17.png",
+      "codepoint": 1110030,
+      "commit": "[冷汗]",
+      "aliases": [
+        "[冷汗]"
+      ]
+    },
+    {
+      "asset": "emoji_18.png",
+      "codepoint": 1110031,
+      "commit": "[抓狂]",
+      "aliases": [
+        "[Scream]",
+        "[抓狂]"
+      ]
+    },
+    {
+      "asset": "emoji_19.png",
+      "codepoint": 1110032,
+      "commit": "[吐]",
+      "aliases": [
+        "[Puke]",
+        "[吐]"
+      ]
+    },
+    {
+      "asset": "emoji_2.png",
+      "codepoint": 1110033,
+      "commit": "[色]",
+      "aliases": [
+        "[Drool]",
+        "[色]"
+      ]
+    },
+    {
+      "asset": "emoji_20.png",
+      "codepoint": 1110034,
+      "commit": "[偷笑]",
+      "aliases": [
+        "[Chuckle]",
+        "[偷笑]"
+      ]
+    },
+    {
+      "asset": "emoji_21.png",
+      "codepoint": 1110035,
+      "commit": "[愉快]",
+      "aliases": [
+        "[Joyful]",
+        "[愉快]"
+      ]
+    },
+    {
+      "asset": "emoji_22.png",
+      "codepoint": 1110036,
+      "commit": "[白眼]",
+      "aliases": [
+        "[Slight]",
+        "[白眼]"
+      ]
+    },
+    {
+      "asset": "emoji_23.png",
+      "codepoint": 1110037,
+      "commit": "[傲慢]",
+      "aliases": [
+        "[Smug]",
+        "[傲慢]"
+      ]
+    },
+    {
+      "asset": "emoji_24.png",
+      "codepoint": 1110038,
+      "commit": "[饥饿]",
+      "aliases": [
+        "[Hungry]",
+        "[饑餓]",
+        "[饥饿]"
+      ]
+    },
+    {
+      "asset": "emoji_25.png",
+      "codepoint": 1110039,
+      "commit": "[困]",
+      "aliases": [
+        "[Drowsy]",
+        "[困]",
+        "[累]"
+      ]
+    },
+    {
+      "asset": "emoji_26.png",
+      "codepoint": 1110040,
+      "commit": "[惊恐]",
+      "aliases": [
+        "[Panic]",
+        "[惊恐]",
+        "[驚恐]"
+      ]
+    },
+    {
+      "asset": "emoji_27.png",
+      "codepoint": 1110041,
+      "commit": "[流汗]",
+      "aliases": [
+        "[Sweat]",
+        "[流汗]"
+      ]
+    },
+    {
+      "asset": "emoji_28.png",
+      "codepoint": 1110042,
+      "commit": "[憨笑]",
+      "aliases": [
+        "[Laugh]",
+        "[大笑]",
+        "[憨笑]"
+      ]
+    },
+    {
+      "asset": "emoji_29.png",
+      "codepoint": 1110043,
+      "commit": "[悠闲]",
+      "aliases": [
+        "[Commando]",
+        "[悠閑]",
+        "[悠闲]"
+      ]
+    },
+    {
+      "asset": "emoji_2_02.png",
+      "codepoint": 1110044,
+      "commit": "[奸笑]",
+      "aliases": [
+        "[Smirk]",
+        "[奸笑]"
+      ]
+    },
+    {
+      "asset": "emoji_2_04.png",
+      "codepoint": 1110045,
+      "commit": "[嘿哈]",
+      "aliases": [
+        "[Hey]",
+        "[吼嘿]",
+        "[嘿哈]"
+      ]
+    },
+    {
+      "asset": "emoji_2_05.png",
+      "codepoint": 1110046,
+      "commit": "[捂脸]",
+      "aliases": [
+        "[Facepalm]",
+        "[捂脸]",
+        "[掩面]"
+      ]
+    },
+    {
+      "asset": "emoji_2_06.png",
+      "codepoint": 1110047,
+      "commit": "[机智]",
+      "aliases": [
+        "[Smart]",
+        "[机智]",
+        "[機智]"
+      ]
+    },
+    {
+      "asset": "emoji_2_07.png",
+      "codepoint": 1110048,
+      "commit": "[茶]",
+      "aliases": [
+        "[Tea]",
+        "[茶]"
+      ]
+    },
+    {
+      "asset": "emoji_2_09.png",
+      "codepoint": 1110049,
+      "commit": "[红包]",
+      "aliases": [
+        "[Packet]",
+        "[红包]"
+      ]
+    },
+    {
+      "asset": "emoji_2_10.png",
+      "codepoint": 1110050,
+      "commit": "[蜡烛]",
+      "aliases": [
+        "[Candle]",
+        "[蜡烛]",
+        "[蠟燭]"
+      ]
+    },
+    {
+      "asset": "emoji_2_11.png",
+      "codepoint": 1110051,
+      "commit": "[耶]",
+      "aliases": [
+        "[Yeah!]",
+        "[歐耶]",
+        "[耶]"
+      ]
+    },
+    {
+      "asset": "emoji_2_12.png",
+      "codepoint": 1110052,
+      "commit": "[皱眉]",
+      "aliases": [
+        "[Concerned]",
+        "[皱眉]",
+        "[皺眉]"
+      ]
+    },
+    {
+      "asset": "emoji_2_14.png",
+      "codepoint": 1110053,
+      "commit": "[鸡]",
+      "aliases": [
+        "[Chick]",
+        "[小雞]",
+        "[鸡]"
+      ]
+    },
+    {
+      "asset": "emoji_2_15.png",
+      "codepoint": 1110054,
+      "commit": "[福]",
+      "aliases": [
+        "[Blessing]",
+        "[福]"
+      ]
+    },
+    {
+      "asset": "emoji_2_16.png",
+      "codepoint": 1110055,
+      "commit": "[發]",
+      "aliases": [
+        "[Rich]",
+        "[發]"
+      ]
+    },
+    {
+      "asset": "emoji_2_17.png",
+      "codepoint": 1110056,
+      "commit": "[小狗]",
+      "aliases": [
+        "[Pup]",
+        "[小狗]"
+      ]
+    },
+    {
+      "asset": "emoji_3.png",
+      "codepoint": 1110057,
+      "commit": "[发呆]",
+      "aliases": [
+        "[Scowl]",
+        "[发呆]",
+        "[發呆]"
+      ]
+    },
+    {
+      "asset": "emoji_30.png",
+      "codepoint": 1110058,
+      "commit": "[奋斗]",
+      "aliases": [
+        "[Determined]",
+        "[奋斗]",
+        "[奮鬥]"
+      ]
+    },
+    {
+      "asset": "emoji_31.png",
+      "codepoint": 1110059,
+      "commit": "[咒骂]",
+      "aliases": [
+        "[Scold]",
+        "[咒罵]",
+        "[咒骂]"
+      ]
+    },
+    {
+      "asset": "emoji_32.png",
+      "codepoint": 1110060,
+      "commit": "[疑问]",
+      "aliases": [
+        "[Shocked]",
+        "[疑問]",
+        "[疑问]"
+      ]
+    },
+    {
+      "asset": "emoji_33.png",
+      "codepoint": 1110061,
+      "commit": "[嘘]",
+      "aliases": [
+        "[Shhh]",
+        "[嘘]",
+        "[噓]"
+      ]
+    },
+    {
+      "asset": "emoji_34.png",
+      "codepoint": 1110062,
+      "commit": "[晕]",
+      "aliases": [
+        "[Dizzy]",
+        "[晕]",
+        "[暈]"
+      ]
+    },
+    {
+      "asset": "emoji_35.png",
+      "codepoint": 1110063,
+      "commit": "[疯了]",
+      "aliases": [
+        "[Tormented]",
+        "[折磨]",
+        "[疯了]",
+        "[瘋了]"
+      ]
+    },
+    {
+      "asset": "emoji_36.png",
+      "codepoint": 1110064,
+      "commit": "[衰]",
+      "aliases": [
+        "[Toasted]",
+        "[衰]"
+      ]
+    },
+    {
+      "asset": "emoji_37.png",
+      "codepoint": 1110065,
+      "commit": "[骷髅]",
+      "aliases": [
+        "[Skull]",
+        "[骷髅]",
+        "[骷髏頭]"
+      ]
+    },
+    {
+      "asset": "emoji_38.png",
+      "codepoint": 1110066,
+      "commit": "[敲打]",
+      "aliases": [
+        "[Hammer]",
+        "[敲打]"
+      ]
+    },
+    {
+      "asset": "emoji_39.png",
+      "codepoint": 1110067,
+      "commit": "[再见]",
+      "aliases": [
+        "[Wave]"
+      ]
+    },
+    {
+      "asset": "emoji_4.png",
+      "codepoint": 1110068,
+      "commit": "[得意]",
+      "aliases": [
+        "[CoolGuy]",
+        "[得意]"
+      ]
+    },
+    {
+      "asset": "emoji_40.png",
+      "codepoint": 1110069,
+      "commit": "[擦汗]",
+      "aliases": [
+        "[Speechless]",
+        "[擦汗]"
+      ]
+    },
+    {
+      "asset": "emoji_41.png",
+      "codepoint": 1110070,
+      "commit": "[抠鼻]",
+      "aliases": [
+        "[NosePick]",
+        "[抠鼻]",
+        "[摳鼻]"
+      ]
+    },
+    {
+      "asset": "emoji_42.png",
+      "codepoint": 1110071,
+      "commit": "[鼓掌]",
+      "aliases": [
+        "[Clap]",
+        "[鼓掌]"
+      ]
+    },
+    {
+      "asset": "emoji_43.png",
+      "codepoint": 1110072,
+      "commit": "[糗大了]",
+      "aliases": [
+        "[Shame]",
+        "[糗大了]",
+        "[羞辱]"
+      ]
+    },
+    {
+      "asset": "emoji_44.png",
+      "codepoint": 1110073,
+      "commit": "[坏笑]",
+      "aliases": [
+        "[Trick]",
+        "[坏笑]",
+        "[壞笑]"
+      ]
+    },
+    {
+      "asset": "emoji_45.png",
+      "codepoint": 1110074,
+      "commit": "[左哼哼]",
+      "aliases": [
+        "[Bah!L]",
+        "[Bah！L]",
+        "[左哼哼]"
+      ]
+    },
+    {
+      "asset": "emoji_46.png",
+      "codepoint": 1110075,
+      "commit": "[右哼哼]",
+      "aliases": [
+        "[Bah!R]",
+        "[Bah！R]",
+        "[右哼哼]"
+      ]
+    },
+    {
+      "asset": "emoji_47.png",
+      "codepoint": 1110076,
+      "commit": "[哈欠]",
+      "aliases": [
+        "[Yawn]",
+        "[哈欠]"
+      ]
+    },
+    {
+      "asset": "emoji_48.png",
+      "codepoint": 1110077,
+      "commit": "[鄙视]",
+      "aliases": [
+        "[Pooh-pooh]",
+        "[鄙視]",
+        "[鄙视]"
+      ]
+    },
+    {
+      "asset": "emoji_49.png",
+      "codepoint": 1110078,
+      "commit": "[委屈]",
+      "aliases": [
+        "[Shrunken]",
+        "[委屈]"
+      ]
+    },
+    {
+      "asset": "emoji_5.png",
+      "codepoint": 1110079,
+      "commit": "[流泪]",
+      "aliases": [
+        "[Sob]",
+        "[流泪]",
+        "[流淚]"
+      ]
+    },
+    {
+      "asset": "emoji_50.png",
+      "codepoint": 1110080,
+      "commit": "[快哭了]",
+      "aliases": [
+        "[TearingUp]",
+        "[快哭了]"
+      ]
+    },
+    {
+      "asset": "emoji_51.png",
+      "codepoint": 1110081,
+      "commit": "[阴险]",
+      "aliases": [
+        "[Sly]",
+        "[阴险]",
+        "[陰險]"
+      ]
+    },
+    {
+      "asset": "emoji_52.png",
+      "codepoint": 1110082,
+      "commit": "[亲亲]",
+      "aliases": [
+        "[Kiss]",
+        "[亲亲]",
+        "[親親]"
+      ]
+    },
+    {
+      "asset": "emoji_53.png",
+      "codepoint": 1110083,
+      "commit": "[吓]",
+      "aliases": [
+        "[Wrath]",
+        "[吓]",
+        "[嚇]"
+      ]
+    },
+    {
+      "asset": "emoji_54.png",
+      "codepoint": 1110084,
+      "commit": "[可怜]",
+      "aliases": [
+        "[Whimper]",
+        "[可怜]",
+        "[可憐]"
+      ]
+    },
+    {
+      "asset": "emoji_55.png",
+      "codepoint": 1110085,
+      "commit": "[菜刀]",
+      "aliases": [
+        "[Cleaver]",
+        "[菜刀]"
+      ]
+    },
+    {
+      "asset": "emoji_56.png",
+      "codepoint": 1110086,
+      "commit": "[西瓜]",
+      "aliases": [
+        "[Watermelon]",
+        "[西瓜]"
+      ]
+    },
+    {
+      "asset": "emoji_57.png",
+      "codepoint": 1110087,
+      "commit": "[啤酒]",
+      "aliases": [
+        "[Beer]",
+        "[啤酒]"
+      ]
+    },
+    {
+      "asset": "emoji_58.png",
+      "codepoint": 1110088,
+      "commit": "[篮球]",
+      "aliases": [
+        "[Basketball]",
+        "[篮球]",
+        "[籃球]"
+      ]
+    },
+    {
+      "asset": "emoji_59.png",
+      "codepoint": 1110089,
+      "commit": "[乒乓]",
+      "aliases": [
+        "[PingPong]",
+        "[乒乓]"
+      ]
+    },
+    {
+      "asset": "emoji_6.png",
+      "codepoint": 1110090,
+      "commit": "[害羞]",
+      "aliases": [
+        "[Shy]",
+        "[害羞]"
+      ]
+    },
+    {
+      "asset": "emoji_60.png",
+      "codepoint": 1110091,
+      "commit": "[咖啡]",
+      "aliases": [
+        "[Coffee]",
+        "[咖啡]"
+      ]
+    },
+    {
+      "asset": "emoji_61.png",
+      "codepoint": 1110092,
+      "commit": "[饭]",
+      "aliases": [
+        "[Rice]",
+        "[飯]",
+        "[饭]"
+      ]
+    },
+    {
+      "asset": "emoji_62.png",
+      "codepoint": 1110093,
+      "commit": "[猪头]",
+      "aliases": [
+        "[Pig]",
+        "[猪头]",
+        "[豬頭]"
+      ]
+    },
+    {
+      "asset": "emoji_63.png",
+      "codepoint": 1110094,
+      "commit": "[玫瑰]",
+      "aliases": [
+        "[Rose]",
+        "[玫瑰]"
+      ]
+    },
+    {
+      "asset": "emoji_64.png",
+      "codepoint": 1110095,
+      "commit": "[凋谢]",
+      "aliases": [
+        "[Wilt]",
+        "[凋谢]",
+        "[枯萎]"
+      ]
+    },
+    {
+      "asset": "emoji_65.png",
+      "codepoint": 1110096,
+      "commit": "[嘴唇]",
+      "aliases": [
+        "[Lips]",
+        "[嘴唇]"
+      ]
+    },
+    {
+      "asset": "emoji_66.png",
+      "codepoint": 1110097,
+      "commit": "[爱心]",
+      "aliases": [
+        "[Heart]",
+        "[愛心]",
+        "[爱心]"
+      ]
+    },
+    {
+      "asset": "emoji_666.png",
+      "codepoint": 1110098,
+      "commit": "[666]",
+      "aliases": [
+        "[666]",
+        "[Awesome]"
+      ]
+    },
+    {
+      "asset": "emoji_67.png",
+      "codepoint": 1110099,
+      "commit": "[心碎]",
+      "aliases": [
+        "[BrokenHeart]",
+        "[心碎]"
+      ]
+    },
+    {
+      "asset": "emoji_68.png",
+      "codepoint": 1110100,
+      "commit": "[蛋糕]",
+      "aliases": [
+        "[Cake]",
+        "[蛋糕]"
+      ]
+    },
+    {
+      "asset": "emoji_69.png",
+      "codepoint": 1110101,
+      "commit": "[闪电]",
+      "aliases": [
+        "[Lightning]",
+        "[閃電]",
+        "[闪电]"
+      ]
+    },
+    {
+      "asset": "emoji_7.png",
+      "codepoint": 1110102,
+      "commit": "[闭嘴]",
+      "aliases": [
+        "[Silent]",
+        "[閉嘴]",
+        "[闭嘴]"
+      ]
+    },
+    {
+      "asset": "emoji_70.png",
+      "codepoint": 1110103,
+      "commit": "[炸弹]",
+      "aliases": [
+        "[Bomb]",
+        "[炸弹]",
+        "[炸彈]"
+      ]
+    },
+    {
+      "asset": "emoji_71.png",
+      "codepoint": 1110104,
+      "commit": "[刀]",
+      "aliases": [
+        "[Dagger]",
+        "[刀]"
+      ]
+    },
+    {
+      "asset": "emoji_72.png",
+      "codepoint": 1110105,
+      "commit": "[足球]",
+      "aliases": [
+        "[Soccer]",
+        "[足球]"
+      ]
+    },
+    {
+      "asset": "emoji_73.png",
+      "codepoint": 1110106,
+      "commit": "[瓢虫]",
+      "aliases": [
+        "[Ladybug]",
+        "[瓢虫]",
+        "[甲蟲]"
+      ]
+    },
+    {
+      "asset": "emoji_74.png",
+      "codepoint": 1110107,
+      "commit": "[便便]",
+      "aliases": [
+        "[Poop]",
+        "[便便]"
+      ]
+    },
+    {
+      "asset": "emoji_75.png",
+      "codepoint": 1110108,
+      "commit": "[月亮]",
+      "aliases": [
+        "[Moon]",
+        "[月亮]"
+      ]
+    },
+    {
+      "asset": "emoji_76.png",
+      "codepoint": 1110109,
+      "commit": "[太阳]",
+      "aliases": [
+        "[Sun]",
+        "[太阳]",
+        "[太陽]"
+      ]
+    },
+    {
+      "asset": "emoji_77.png",
+      "codepoint": 1110110,
+      "commit": "[礼物]",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_78.png",
+      "codepoint": 1110111,
+      "commit": "[拥抱]",
+      "aliases": [
+        "[Hug]",
+        "[拥抱]",
+        "[擁抱]"
+      ]
+    },
+    {
+      "asset": "emoji_79.png",
+      "codepoint": 1110112,
+      "commit": "[强]",
+      "aliases": [
+        "[ThumbsUp]",
+        "[強]",
+        "[强]"
+      ]
+    },
+    {
+      "asset": "emoji_8.png",
+      "codepoint": 1110113,
+      "commit": "[睡]",
+      "aliases": [
+        "[Sleep]",
+        "[睡]"
+      ]
+    },
+    {
+      "asset": "emoji_80.png",
+      "codepoint": 1110114,
+      "commit": "[弱]",
+      "aliases": [
+        "[ThumbsDown]",
+        "[弱]"
+      ]
+    },
+    {
+      "asset": "emoji_81.png",
+      "codepoint": 1110115,
+      "commit": "[握手]",
+      "aliases": [
+        "[Shake]",
+        "[握手]"
+      ]
+    },
+    {
+      "asset": "emoji_82.png",
+      "codepoint": 1110116,
+      "commit": "[胜利]",
+      "aliases": [
+        "[Peace]",
+        "[勝利]",
+        "[胜利]"
+      ]
+    },
+    {
+      "asset": "emoji_83.png",
+      "codepoint": 1110117,
+      "commit": "[抱拳]",
+      "aliases": [
+        "[Fight]"
+      ]
+    },
+    {
+      "asset": "emoji_84.png",
+      "codepoint": 1110118,
+      "commit": "[勾引]",
+      "aliases": [
+        "[Beckon]",
+        "[勾引]"
+      ]
+    },
+    {
+      "asset": "emoji_85.png",
+      "codepoint": 1110119,
+      "commit": "[拳头]",
+      "aliases": [
+        "[Fist]",
+        "[拳头]",
+        "[拳頭]"
+      ]
+    },
+    {
+      "asset": "emoji_86.png",
+      "codepoint": 1110120,
+      "commit": "[差劲]",
+      "aliases": [
+        "[Pinky]",
+        "[差劲]",
+        "[差勁]"
+      ]
+    },
+    {
+      "asset": "emoji_87.png",
+      "codepoint": 1110121,
+      "commit": "[爱你]",
+      "aliases": [
+        "[RockOn]",
+        "[愛你]",
+        "[爱你]"
+      ]
+    },
+    {
+      "asset": "emoji_88.png",
+      "codepoint": 1110122,
+      "commit": "[NO]",
+      "aliases": [
+        "[NO]",
+        "[Nuh-uh]"
+      ]
+    },
+    {
+      "asset": "emoji_89.png",
+      "codepoint": 1110123,
+      "commit": "[OK]",
+      "aliases": [
+        "[OK]"
+      ]
+    },
+    {
+      "asset": "emoji_9.png",
+      "codepoint": 1110124,
+      "commit": "[大哭]",
+      "aliases": [
+        "[Cry]",
+        "[大哭]"
+      ]
+    },
+    {
+      "asset": "emoji_90.png",
+      "codepoint": 1110125,
+      "commit": "[爱情]",
+      "aliases": [
+        "[InLove]",
+        "[愛情]",
+        "[爱情]"
+      ]
+    },
+    {
+      "asset": "emoji_91.png",
+      "codepoint": 1110126,
+      "commit": "[飞吻]",
+      "aliases": [
+        "[Blowkiss]",
+        "[飛吻]",
+        "[飞吻]"
+      ]
+    },
+    {
+      "asset": "emoji_92.png",
+      "codepoint": 1110127,
+      "commit": "[跳跳]",
+      "aliases": [
+        "[Waddle]",
+        "[跳跳]"
+      ]
+    },
+    {
+      "asset": "emoji_93.png",
+      "codepoint": 1110128,
+      "commit": "[发抖]",
+      "aliases": [
+        "[Tremble]",
+        "[发抖]",
+        "[發抖]"
+      ]
+    },
+    {
+      "asset": "emoji_94.png",
+      "codepoint": 1110129,
+      "commit": "[怄火]",
+      "aliases": [
+        "[Aaagh!]",
+        "[噴火]",
+        "[怄火]"
+      ]
+    },
+    {
+      "asset": "emoji_95.png",
+      "codepoint": 1110130,
+      "commit": "[转圈]",
+      "aliases": [
+        "[Twirl]",
+        "[轉圈]",
+        "[转圈]"
+      ]
+    },
+    {
+      "asset": "emoji_96.png",
+      "codepoint": 1110131,
+      "commit": "[磕头]",
+      "aliases": [
+        "[Kotow]",
+        "[磕头]",
+        "[磕頭]"
+      ]
+    },
+    {
+      "asset": "emoji_97.png",
+      "codepoint": 1110132,
+      "commit": "[回头]",
+      "aliases": [
+        "[Dramatic]",
+        "[回头]",
+        "[回頭]"
+      ]
+    },
+    {
+      "asset": "emoji_98.png",
+      "codepoint": 1110133,
+      "commit": "[跳绳]",
+      "aliases": [
+        "[JumpRope]",
+        "[跳繩]",
+        "[跳绳]"
+      ]
+    },
+    {
+      "asset": "emoji_99.png",
+      "codepoint": 1110134,
+      "commit": "[投降]",
+      "aliases": [
+        "[Surrender]",
+        "[投降]"
+      ]
+    },
+    {
+      "asset": "emoji_Addoil.png",
+      "codepoint": 1110135,
+      "commit": "[加油]",
+      "aliases": [
+        "[GoForIt]",
+        "[加油]"
+      ]
+    },
+    {
+      "asset": "emoji_Boring.png",
+      "codepoint": 1110136,
+      "commit": "[翻白眼]",
+      "aliases": [
+        "[Boring]",
+        "[翻白眼]"
+      ]
+    },
+    {
+      "asset": "emoji_Broken.png",
+      "codepoint": 1110137,
+      "commit": "[裂开]",
+      "aliases": [
+        "[Broken]",
+        "[崩潰]",
+        "[裂开]"
+      ]
+    },
+    {
+      "asset": "emoji_Cold.png",
+      "codepoint": 1110138,
+      "commit": "[Emm]",
+      "aliases": [
+        "[Emm]",
+        "[一言難盡]"
+      ]
+    },
+    {
+      "asset": "emoji_Duh.png",
+      "codepoint": 1110139,
+      "commit": "[无语]",
+      "aliases": [
+        "[Duh]",
+        "[无语]",
+        "[無語]"
+      ]
+    },
+    {
+      "asset": "emoji_Firecracker.png",
+      "codepoint": 1110140,
+      "commit": "[爆竹]",
+      "aliases": [
+        "[Firecracker]",
+        "[爆竹]"
+      ]
+    },
+    {
+      "asset": "emoji_Fireworks.png",
+      "codepoint": 1110141,
+      "commit": "[烟花]",
+      "aliases": [
+        "[Fireworks]",
+        "[烟花]",
+        "[煙花]"
+      ]
+    },
+    {
+      "asset": "emoji_Flushed.png",
+      "codepoint": 1110142,
+      "commit": "[脸红]",
+      "aliases": [
+        "[Flushed]",
+        "[脸红]",
+        "[臉紅]"
+      ]
+    },
+    {
+      "asset": "emoji_Gift.png",
+      "codepoint": 1110143,
+      "commit": "[礼物]",
+      "aliases": [
+        "[Gift]",
+        "[gift]",
+        "[礼物]",
+        "[禮物]"
+      ]
+    },
+    {
+      "asset": "emoji_Happy.png",
+      "codepoint": 1110144,
+      "commit": "[笑脸]",
+      "aliases": [
+        "[Happy]",
+        "[笑脸]",
+        "[笑臉]"
+      ]
+    },
+    {
+      "asset": "emoji_Hurt.png",
+      "codepoint": 1110145,
+      "commit": "[苦涩]",
+      "aliases": [
+        "[Hurt]",
+        "[苦涩]",
+        "[難受]"
+      ]
+    },
+    {
+      "asset": "emoji_KeepFighting.png",
+      "codepoint": 1110146,
+      "commit": "[加油加油]",
+      "aliases": [
+        "[KeepFighting]",
+        "[加油加油]",
+        "[加油！]"
+      ]
+    },
+    {
+      "asset": "emoji_Let%20Down.png",
+      "codepoint": 1110147,
+      "commit": "[失望]",
+      "aliases": [
+        "[Let Down]",
+        "[LetDown]",
+        "[失望]"
+      ]
+    },
+    {
+      "asset": "emoji_LetMeSee.png",
+      "codepoint": 1110148,
+      "commit": "[让我看看]",
+      "aliases": [
+        "[LetMeSee]",
+        "[讓我看看]",
+        "[让我看看]"
+      ]
+    },
+    {
+      "asset": "emoji_Lol.png",
+      "codepoint": 1110149,
+      "commit": "[破涕为笑]",
+      "aliases": [
+        "[Lol]",
+        "[破涕为笑]",
+        "[破涕為笑]"
+      ]
+    },
+    {
+      "asset": "emoji_NoProb.png",
+      "codepoint": 1110150,
+      "commit": "[好的]",
+      "aliases": [
+        "[NoProb]",
+        "[好的]"
+      ]
+    },
+    {
+      "asset": "emoji_Party.png",
+      "codepoint": 1110151,
+      "commit": "[庆祝]",
+      "aliases": [
+        "[Party]",
+        "[庆祝]",
+        "[慶祝]"
+      ]
+    },
+    {
+      "asset": "emoji_Shocked!.png",
+      "codepoint": 1110152,
+      "commit": "[天啊]",
+      "aliases": [
+        "[OMG]",
+        "[天啊]"
+      ]
+    },
+    {
+      "asset": "emoji_Sick.png",
+      "codepoint": 1110153,
+      "commit": "[生病]",
+      "aliases": [
+        "[Sick]",
+        "[生病]"
+      ]
+    },
+    {
+      "asset": "emoji_Sigh.png",
+      "codepoint": 1110154,
+      "commit": "[叹气]",
+      "aliases": [
+        "[Sigh]",
+        "[叹气]",
+        "[嘆息]"
+      ]
+    },
+    {
+      "asset": "emoji_Slap.png",
+      "codepoint": 1110155,
+      "commit": "[打脸]",
+      "aliases": [
+        "[MyBad]",
+        "[打脸]",
+        "[打臉]"
+      ]
+    },
+    {
+      "asset": "emoji_Social.png",
+      "codepoint": 1110156,
+      "commit": "[社会社会]",
+      "aliases": [
+        "[Respect]",
+        "[失敬失敬]",
+        "[社会社会]"
+      ]
+    },
+    {
+      "asset": "emoji_Sweat.png",
+      "codepoint": 1110157,
+      "commit": "[汗]",
+      "aliases": [
+        "[Sweats]",
+        "[汗]"
+      ]
+    },
+    {
+      "asset": "emoji_Terror.png",
+      "codepoint": 1110158,
+      "commit": "[恐惧]",
+      "aliases": [
+        "[Terror]",
+        "[恐惧]",
+        "[恐懼]"
+      ]
+    },
+    {
+      "asset": "emoji_Watermelon.png",
+      "codepoint": 1110159,
+      "commit": "[吃瓜]",
+      "aliases": [
+        "[Onlooker]",
+        "[吃瓜]",
+        "[吃西瓜]"
+      ]
+    },
+    {
+      "asset": "emoji_Worship.png",
+      "codepoint": 1110160,
+      "commit": "[合十]",
+      "aliases": [
+        "[Worship]",
+        "[合十]"
+      ]
+    },
+    {
+      "asset": "emoji_Wow!.png",
+      "codepoint": 1110161,
+      "commit": "[哇]",
+      "aliases": [
+        "[Wow]",
+        "[哇]"
+      ]
+    },
+    {
+      "asset": "emoji_Yellowdog.png",
+      "codepoint": 1110162,
+      "commit": "[旺柴]",
+      "aliases": [
+        "[Doge]",
+        "[旺柴]"
+      ]
+    },
+    {
+      "asset": "emoji_cha.png",
+      "codepoint": 1110163,
+      "commit": "",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_hahaha.png",
+      "codepoint": 1110164,
+      "commit": "",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_hl.png",
+      "codepoint": 1110165,
+      "commit": "",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_mask.png",
+      "codepoint": 1110166,
+      "commit": "",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_smiley_17b.png",
+      "codepoint": 1110167,
+      "commit": "[囧]",
+      "aliases": [
+        "[Blush]",
+        "[囧]"
+      ]
+    },
+    {
+      "asset": "emoji_smiley_39b.png",
+      "codepoint": 1110168,
+      "commit": "[再见]",
+      "aliases": [
+        "[Bye]",
+        "[再見]",
+        "[再见]"
+      ]
+    },
+    {
+      "asset": "emoji_smiley_83b.png",
+      "codepoint": 1110169,
+      "commit": "[抱拳]",
+      "aliases": [
+        "[Salute]",
+        "[抱拳]"
+      ]
+    },
+    {
+      "asset": "emoji_ugly.png",
+      "codepoint": 1110170,
+      "commit": "",
+      "aliases": []
+    },
+    {
+      "asset": "emoji_xixi.png",
+      "codepoint": 1110171,
+      "commit": "",
+      "aliases": []
+    }
+  ]
+}

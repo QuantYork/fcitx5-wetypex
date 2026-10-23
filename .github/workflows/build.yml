@@ -13,7 +13,7 @@ jobs:
       - name: 安装构建依赖
         run: >-
           pacman -Syu --noconfirm git cmake clang boost fcitx5 fcitx5-qt libime libc++
-          json-c curl openssl bubblewrap util-linux python qt6-base qt6-svg
+          json-c curl openssl bubblewrap util-linux python python-fonttools python-pillow fontconfig qt6-base qt6-svg
           qt6-webengine layer-shell-qt pipewire ffmpeg wl-clipboard libnotify polkit
       - uses: actions/checkout@v7
       - name: 配置
@@ -26,7 +26,7 @@ jobs:
             case "$script" in *-syncd.sh.in|*-update.sh.in|*-sync.sh.in) continue;; esac
             sh -n "$script"
           done
-          python3 -m py_compile scripts/setup_runtime.py tools/*.py \
+          python3 -m py_compile scripts/setup_runtime.py scripts/wechat_emoticons.py tools/*.py \
             build/fcitx5-wetypex-syncd build/fcitx5-wetypex-update build/fcitx5-wetypex-sync
       - name: 构建 Arch 软件包（启用 LTO）
         run: |

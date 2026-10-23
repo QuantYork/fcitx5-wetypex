@@ -51,7 +51,8 @@ FCITX_CONFIGURATION(
     Option<bool> smartInput{this, "SmartInput", "智能拼写", true};
     Option<bool> emojiRecommend{this, "EmojiRecommend", "表情和颜文字推荐",
                                 true};
-    Option<bool> wechatEmoji{this, "WechatEmoji", "微信表情推荐", true};
+    Option<bool> wechatEmoji{this, "WechatEmoji",
+                             "微信表情推荐（仅微信客户端）", true};
     Option<bool> normalEmoji{this, "NormalEmoji", "Emoji 推荐", true};
     Option<bool> kaomoji{this, "Kaomoji", "颜文字推荐", true};
     Option<bool> largeEmoji{this, "LargeEmoji", "大表情推荐", true};

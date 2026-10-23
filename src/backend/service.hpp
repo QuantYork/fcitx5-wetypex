@@ -1,6 +1,15 @@
 // Native engine IPC. All engine operations are serialized on the service
 // thread.
+#include "../common/wechat_emoticons.hpp"
 #include "control.hpp"
+static const wetype::WeChatEmoticons &service_emoticons() {
+  static const wetype::WeChatEmoticons data(
+      std::filesystem::path(getenv("WETYPE_SUPPORT_DIR")
+                                ? getenv("WETYPE_SUPPORT_DIR")
+                                : "/support") /
+      "wechat-emoticons.json");
+  return data;
+}
 static void configure_group_sync(uint64_t groupId, uint64_t functions,
                                  uint64_t phraseVersion,
                                  uint64_t dictionaryVersion) {
@@ -50,7 +59,7 @@ static bool hotword_collect(void *opaque, HotWord item) {
   return true;
 }
 struct ServiceCandidate {
-  std::string text;
+  std::string text, engineText;
   std::vector<unsigned char> id;
   uint32_t cover = 0;
   bool cloud = false;
@@ -65,6 +74,7 @@ struct ServiceSession {
   std::vector<size_t> cursorStops;
   unsigned pending = 0;
   bool vMode = false;
+  bool wechatEmoji = false;
   std::mutex mutex;
   std::vector<ServiceCandidate> candidates;
   struct PublishedCandidates {
@@ -110,7 +120,8 @@ static void configure_cloud_session(unsigned char *config) {
   *(uint32_t *)(config + 0x54) = 1; // cloud.process_input.predict_next_n
 }
 static void read_service_candidates(void *iterator,
-                                    std::vector<ServiceCandidate> &output) {
+                                    std::vector<ServiceCandidate> &output,
+                                    bool wechat) {
   output.clear();
   for (unsigned rank = 0; iterator && rank < 50; rank++) {
     alignas(16) unsigned char c[512]{};
@@ -128,6 +139,10 @@ static void read_service_candidates(void *iterator,
       _exit(89);
     ServiceCandidate candidate;
     candidate.text.assign(text, len);
+    if (service_emoticons().hidden(candidate.text, wechat))
+      continue;
+    candidate.engineText = candidate.text;
+    candidate.text = service_emoticons().commit(candidate.text, wechat);
     memcpy(&candidate.cover, c + 0x64, 4);
     // Cloud candidates carry a fixed marker pair in the engine's candidate
     // struct; local candidates leave both fields zero.
@@ -156,7 +171,7 @@ static void service_listener(uint64_t, int32_t *types, void **payloads,
       // cloud iterator +16, version +24 (macOS 2.2.3.657).
       auto it = *(void **)payloads[i];
       auto cloud = *((void **)payloads[i] + 2);
-      read_service_candidates(it, s.candidates);
+      read_service_candidates(it, s.candidates, s.wechatEmoji);
       ++s.revision;
       if (it)
         ((void (*)(void *))syms.at("_wxime_delete_candidate_iterator"))(it);
@@ -167,7 +182,7 @@ static void service_listener(uint64_t, int32_t *types, void **payloads,
       // The iterator is the engine's fully merged list; cloud entries are
       // identified by their struct marker in read_service_candidates.
       auto it = *(void **)payloads[i];
-      read_service_candidates(it, s.candidates);
+      read_service_candidates(it, s.candidates, s.wechatEmoji);
       ++s.revision;
       if (it)
         ((void (*)(void *))syms.at("_wxime_delete_candidate_iterator"))(it);
@@ -175,7 +190,8 @@ static void service_listener(uint64_t, int32_t *types, void **payloads,
       const char *text = *(const char **)payloads[i];
       uint32_t n = *(uint32_t *)((char *)payloads[i] + 8);
       if (text && n < 65536) {
-        s.commits.emplace_back(text, n);
+        s.commits.emplace_back(
+            service_emoticons().commit(std::string(text, n), s.wechatEmoji));
         s.selected.clear();
       }
     } else if (types[i] == 5) {
@@ -259,8 +275,8 @@ static bool service_select(ServiceSession &s, unsigned rank,
                       const char *, uint32_t, const void *, uint32_t,
                       const void *, uint32_t, const void *);
   ((Fn)syms.at("_wxime_select_candidate"))(
-      s.engine, c.text.data(), c.text.size(), c.id.data(), c.id.size(), nullptr,
-      0, nullptr, 0, nullptr, 0, nullptr);
+      s.engine, c.engineText.data(), c.engineText.size(), c.id.data(),
+      c.id.size(), nullptr, 0, nullptr, 0, nullptr, 0, nullptr);
   bool finishVMode = false;
   {
     std::lock_guard<std::mutex> lock(s.mutex);
@@ -392,6 +408,10 @@ static void service_loop() {
           continue;
         }
         auto state = std::make_unique<ServiceSession>();
+        state->wechatEmoji =
+            service_emoticons().ready() &&
+            wire::number(request.get(), "emoji_recommend", 1) &&
+            wire::number(request.get(), "wechat_emoji", 0);
         alignas(16) unsigned char config[2048]{};
         config[1] = 1;
         if (getenv("WETYPE_NETWORK_LIVE"))
@@ -438,7 +458,7 @@ static void service_loop() {
         config[0x1e] = wire::number(request.get(), "fuzzy_an_ai", 0);
         config[0x1f] = wire::number(request.get(), "fuzzy_eng_ong", 0);
         if (wire::number(request.get(), "emoji_recommend", 1)) {
-          config[0x33] = wire::number(request.get(), "wechat_emoji", 1);
+          config[0x33] = state->wechatEmoji;
           config[0x34] = wire::number(request.get(), "normal_emoji", 1);
           config[0x35] = wire::number(request.get(), "kaomoji", 1);
           config[0x36] = wire::number(request.get(), "large_emoji", 1);

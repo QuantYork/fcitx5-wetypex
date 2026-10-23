@@ -807,7 +807,7 @@ int main(int argc, char **argv) {
   auto *emojiSetup = new QPushButton("设置...");
   QObject::connect(emojiSetup, &QPushButton::clicked, [&window] {
     runToggleDialog(&window, "表情和颜文字推荐",
-                    {{"微信表情", "wechat_emoji", true},
+                    {{"微信表情（仅微信客户端）", "wechat_emoji", true},
                      {"Emoji", "normal_emoji", true},
                      {"颜文字", "kaomoji", true},
                      {"大表情", "large_emoji", true},

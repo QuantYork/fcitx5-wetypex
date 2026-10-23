@@ -265,6 +265,8 @@ public:
 class WeType : public InputMethodEngine {
   friend class VMenuWord;
   Instance *instance_;
+  wetype::WeChatEmoticons wechatEmoticons_{WETYPE_WECHAT_EMOTICONS};
+  bool wechatFont_ = wetype_emoji::originalFontAvailable();
   uint64_t nextId_ = 0;
   FactoryFor<State> factory_;
   SimpleAction settingsAction_;
@@ -1545,10 +1547,13 @@ class WeType : public InputMethodEngine {
               bool(*inputConfig.wubiWildcardComment));
     wire::put(json.get(), "smart_input", bool(*inputConfig.smartInput));
     wire::put(json.get(), "emoji_recommend", bool(*inputConfig.emojiRecommend));
-    wire::put(json.get(), "wechat_emoji", bool(*inputConfig.wechatEmoji));
+    const bool wechat = wetype::WeChatEmoticons::isWeChat(ic->program());
+    wire::put(json.get(), "wechat_emoji",
+              bool(*inputConfig.wechatEmoji) && wechat);
     wire::put(json.get(), "normal_emoji", bool(*inputConfig.normalEmoji));
     wire::put(json.get(), "kaomoji", bool(*inputConfig.kaomoji));
-    wire::put(json.get(), "large_emoji", bool(*inputConfig.largeEmoji));
+    wire::put(json.get(), "large_emoji",
+              bool(*inputConfig.largeEmoji) && wechat);
     wire::put(json.get(), "symbol_emoji", bool(*inputConfig.symbolEmoji));
     wire::put(json.get(), "v_mode", bool(*config_.shortcuts->vMode));
     wire::put(json.get(), "fuzzy_nl", bool(*inputConfig.fuzzyNl));
@@ -1708,8 +1713,13 @@ class WeType : public InputMethodEngine {
             display += "☁";
           auto text = std::string_view(json_object_get_string(v),
                                        json_object_get_string_len(v));
-          auto glyph = wetype_emoji::glyph(text);
-          display += glyph.empty() ? text : glyph;
+          const auto *emoticon =
+              wetype::WeChatEmoticons::isWeChat(ic->program())
+                  ? wechatEmoticons_.find(text)
+                  : nullptr;
+          if (emoticon && wechatFont_)
+            display += utf8::UCS4ToUTF8(emoticon->codepoint) + " ";
+          display += text;
           list->append<Word>(this, std::move(display), i, s->revision);
         }
       }

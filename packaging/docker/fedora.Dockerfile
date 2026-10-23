@@ -8,6 +8,6 @@ RUN dnf --disablerepo='*' \
       --setopt=updates-archive.gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-40-x86_64 \
       install -y -q \
       gcc gcc-c++ cmake clang git pkgconf-pkg-config boost-devel \
-      fcitx5-devel fcitx5-qt-devel libime-devel json-c-devel openssl-devel ca-certificates libcxx-devel \
+      fcitx5-devel fcitx5-qt-devel libime-devel json-c-devel openssl-devel fontconfig-devel ca-certificates libcxx-devel \
       qt6-qtbase-devel qt6-qtsvg-devel qt6-qtwebengine-devel layer-shell-qt-devel wayland-devel && \
     dnf clean all

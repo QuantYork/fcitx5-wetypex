@@ -38,6 +38,10 @@ overrides:
       - bubblewrap
       - util-linux
       - python3
+      - python3-fonttools
+      - python3-pil
+      - fontconfig
+      - libfontconfig1
       - pipewire-bin | pipewire
       - ffmpeg
       - wl-clipboard
@@ -60,6 +64,9 @@ overrides:
       - bubblewrap
       - util-linux
       - python3
+      - python3-fonttools
+      - python3-pillow
+      - fontconfig
       - pipewire-utils
       - /usr/bin/ffmpeg
       - wl-clipboard

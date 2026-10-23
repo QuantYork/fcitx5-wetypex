@@ -35,6 +35,7 @@
 | --- | --- |
 | 全拼、双拼、五笔 | 使用原版 macOS 2.2.3.657 输入核心和词典 |
 | 智能拼写与云候选 | 原版本地候选与桌面云候选合并，云端新增候选带 ☁ 标记 |
+| 微信表情 | 仅在可识别的微信客户端中推荐，候选显示用户安装包中的原图；普通 emoji 保留 |
 | Fcitx5 输入体验 | 原生 input method 插件、内嵌预编辑、分页与选词 |
 | 账户与设备 | 官方六位匹配码、确认配对、设备组和功能开关 |
 | 跨设备剪贴板 | 文字与原始 PNG 图片双向同步 |
@@ -84,7 +85,7 @@ paru -S fcitx5-wetypex
 
 安装完成后，Pacman 会在终端中打印首次设置步骤。
 
-发布包依赖 Fcitx5、LibIME、Qt 6、Bubblewrap、PipeWire、FFmpeg、libc++、curl、json-c、libnotify 和 Polkit。Pacman 会从已配置的软件仓库解析依赖。
+发布包依赖 Fcitx5、LibIME、Qt 6、Bubblewrap、PipeWire、FFmpeg、libc++、curl、json-c、libnotify 和 Polkit；微信表情原图显示还使用 fontconfig、fontTools 和 Pillow。Pacman 会从已配置的软件仓库解析依赖。
 
 ### Debian 与 Ubuntu
 
@@ -219,6 +220,7 @@ fcitx5-diagnose | less
 - [架构说明](docs/architecture.md)
 - [功能状态](docs/feature-status.md)
 - [配置参考](docs/configuration.md)
+- [Linux 微信表情原图与应用识别](docs/wechat-emoticons.md)
 - [Hyprland 兼容](docs/hyprland.md)
 - [故障排查](docs/troubleshooting.md)
 - [发行与打包](docs/distribution.md)
