@@ -492,7 +492,7 @@ class Service:
                         native_pid=self.backend.process.pid if self.backend and self.backend.process.poll() is None else None,
                         capture_pid=self.job.capture.pid if self.job and self.job.capture and self.job.capture.poll() is None else None,
                         native_ready=bool(self.backend and self.backend.ready.is_set() and self.backend.process.poll() is None),
-                        vad=bool(self.backend and self.backend.vad))
+                        vad=bool(self.backend and self.backend.process.poll() is None and self.backend.vad))
 
 
 class Handler(socketserver.StreamRequestHandler):
