@@ -40,7 +40,7 @@
 | 账户与设备 | 官方六位匹配码、确认配对、设备组和功能开关 |
 | 跨设备剪贴板 | 文字与原始 PNG 图片双向同步 |
 | 个人词库与常用语 | 本地持久化；设备组同步器已接入 |
-| 语音输入 | PipeWire 录音、Opus 编码、原版在线识别与回填 |
+| 语音输入 | PipeWire 流式采集，原版语音引擎编码、VAD、识别、整理与实时预编辑 |
 | 问 AI | `=` 上下文触发、真实在线回答和独立问答窗口 |
 | 隔空传送 | 官方传输码与二维码、原版 Flurry LAN 与 WXP2P 直连/中继通道 |
 | V 模式 | 原版计算候选，以及计算、剪贴板、常用语和符号快捷栏 |
@@ -135,6 +135,8 @@ sudo cmake --install build
 
 使用已经下载的官方安装包：
 
+固定版本的官方下载地址：[WeType_2.2.3_657.zip](https://download.weread.qq.com/app/wxkb/mac/2.2.3/WeType_2.2.3_657.zip)。
+
 ```bash
 fcitx5-wetypex-setup --archive /path/to/WeType_2.2.3_657.zip
 ```
@@ -177,7 +179,7 @@ fcitx5-wetypex-account sync-now     # 请求个人词库与常用语同步
 - `-` / `=`：组合输入时向上、向下翻页。
 - `=`：没有拼音组合时，使用光标前的文本打开问 AI。
 - `V`：打开快捷工具栏，再按 `V`、`Esc` 或点击“关闭”结束；点击剪贴板、常用语或符号后，内容会插入原输入框。选择“计算”后直接输入表达式，按空格或回车选取结果。
-- `Ctrl + Win + Shift`：启动语音输入，再按任意键结束。
+- `Ctrl + Win + Shift`：启动或结束语音输入；`Ctrl + Win` 按住说话、松开结束。录音时可用空格结束、Enter 提交当前结果、Esc 取消，详见[流式语音输入](docs/voice-input.md)。
 - `Ctrl + Win`：按住说话，松开结束。
 
 外观中的“候选序号样式”可选择微信风格或 Fcitx 默认标签。Wayland 下的 V 工具栏优先使用 layer-shell 保持原输入框焦点，并尽量限制在当前窗口范围内，避免点击时焦点落到下方窗口；构建依赖与兼容回退见[故障排查](docs/troubleshooting.md#wayland-下-v-工具栏闪退或不显示)。Hyprland 0.55+ 的窗口规则与 app_id 配置见[Hyprland 兼容](docs/hyprland.md)。
@@ -221,6 +223,7 @@ fcitx5-diagnose | less
 - [功能状态](docs/feature-status.md)
 - [配置参考](docs/configuration.md)
 - [Linux 微信表情原图与应用识别](docs/wechat-emoticons.md)
+- [流式语音输入与诊断](docs/voice-input.md)
 - [Hyprland 兼容](docs/hyprland.md)
 - [故障排查](docs/troubleshooting.md)
 - [发行与打包](docs/distribution.md)

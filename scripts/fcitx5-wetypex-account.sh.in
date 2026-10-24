@@ -3,6 +3,9 @@ set -eu
 umask 077
 
 command_name="${1:-}"
+if [ "$command_name" = voice-file ]; then
+  exec @CMAKE_INSTALL_FULL_BINDIR@/fcitx5-wetypex-voice transcribe "${2:-}"
+fi
 if [ "$command_name" = network-info ]; then
   support="${WETYPE_SUPPORT_DIR:-@WETYPE_SUPPORT_DIR@}"
   exec "$support/wetypex-engine-host" "$support" network-info

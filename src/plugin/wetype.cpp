@@ -5,6 +5,7 @@
 #include <cerrno>
 #include <clipboard_public.h>
 #include <csignal>
+#include <cstddef>
 #include <cstring>
 #include <fcitx-utils/capabilityflags.h>
 #include <fcitx-utils/event.h>
@@ -34,12 +35,14 @@
 #include <iterator>
 #include <libime/pinyin/pinyinencoder.h>
 #include <map>
+#include <poll.h>
 #include <queue>
 #include <spawn.h>
 #include <string>
 #include <string_view>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 #include <type_traits>
 #include <unistd.h>
@@ -282,6 +285,7 @@ class WeType : public InputMethodEngine {
   uint64_t restartAt_ = 0, restartBackoff_ = 250000;
   bool restartNeedsOpen_ = false;
   uint64_t syncTick_ = 0, updateTick_ = 0;
+  uint64_t voiceWarmTick_ = 0;
   uint64_t lastVoiceVersion_ = 0;
   pid_t vModeChild_ = -1;
   uint64_t vModeSession_ = 0, vModeEpoch_ = 0, vModeGeneration_ = 0;
@@ -290,8 +294,12 @@ class WeType : public InputMethodEngine {
   uint64_t vModeFocusDeadline_ = 0;
   bool vModeFallbackPending_ = false;
   std::string inbound_, outbound_;
-  bool voiceRecording_ = false, voiceHold_ = false;
+  bool voiceRecording_ = false, voiceHold_ = false, voicePending_ = false;
   uint64_t voiceSession_ = 0, voiceEpoch_ = 0;
+  uint64_t voiceStatusUntil_ = 0;
+  pid_t voiceDaemonPid_ = 0;
+  std::string voiceToken_, voiceText_, voicePhase_, voiceError_;
+  int voiceLevel_ = 0;
   pid_t syncChild_ = -1;
   void startSync() {
     if (syncChild_ > 0 && waitpid(syncChild_, nullptr, WNOHANG) == 0)
@@ -899,45 +907,178 @@ class WeType : public InputMethodEngine {
       std::filesystem::rename(temporary, path, error);
     }
   }
+  bool voiceControl(const char *operation, bool traditional = false) {
+    std::ifstream input(stateDirectory() / "voice/control.json");
+    std::string bytes(1025, '\0');
+    input.read(bytes.data(), bytes.size());
+    bytes.resize(input.gcount());
+    if (bytes.size() > 1024)
+      return false;
+    auto control = wire::parse(bytes);
+    if (wire::number(control.get(), "version") != 1)
+      return false;
+    const auto address = wire::str(control.get(), "address");
+    const auto prefix = "wetypex-voice-" + std::to_string(getuid()) + "-";
+    sockaddr_un socketAddress{};
+    if (address.compare(0, prefix.size(), prefix) != 0 ||
+        address.size() + 1 > sizeof(socketAddress.sun_path))
+      return false;
+    const int fd = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | SOCK_NONBLOCK, 0);
+    if (fd < 0)
+      return false;
+    socketAddress.sun_family = AF_UNIX;
+    memcpy(socketAddress.sun_path + 1, address.data(), address.size());
+    struct ucred peer{};
+    socklen_t peerSize = sizeof(peer);
+    if (::connect(fd, reinterpret_cast<sockaddr *>(&socketAddress),
+                offsetof(sockaddr_un, sun_path) + 1 + address.size()) ||
+        getsockopt(fd, SOL_SOCKET, SO_PEERCRED, &peer, &peerSize) ||
+        peer.uid != getuid()) {
+      close(fd);
+      return false;
+    }
+    auto message = wire::object();
+    wire::put(message.get(), "op", std::string(operation));
+    wire::put(message.get(), "token", voiceToken_);
+    wire::put(message.get(), "session", int64_t(voiceSession_));
+    wire::put(message.get(), "epoch", int64_t(voiceEpoch_));
+    wire::put(message.get(), "pid", int64_t(getpid()));
+    wire::put(message.get(), "traditional", traditional);
+    const auto payload = wire::dump(message.get()) + '\n';
+    bool delivered = ::send(fd, payload.data(), payload.size(),
+                           MSG_NOSIGNAL | MSG_DONTWAIT) == ssize_t(payload.size());
+    if (delivered) {
+      pollfd wait{fd, POLLIN, 0};
+      char ack;
+      // Local control normally completes in less than a millisecond. Bound
+      // the GUI wait and fall back to the helper if the daemon is restarting.
+      delivered = ::poll(&wait, 1, 5) > 0 && ::recv(fd, &ack, 1, MSG_DONTWAIT) == 1;
+    }
+    close(fd);
+    if (delivered && std::string_view(operation) == "start")
+      voiceDaemonPid_ = peer.pid;
+    return delivered;
+  }
+  void primeVoice() {
+    voiceWarmTick_ = now(CLOCK_MONOTONIC);
+    if (networkEnabled_ &&
+        (*config_.voice->launchShortcut || *config_.voice->holdShortcut) &&
+        !voiceControl("status"))
+      startProcess({WETYPE_VOICE, "status"});
+  }
+  bool flushBeforeVoice(InputContext *ic, KeyEvent &event) {
+    auto *s = state(ic);
+    if (s->vMode || s->vMenu != VMenu::None ||
+        (s->preedit.empty() && s->inputSeq <= s->applied))
+      return false;
+    const auto fallback = s->preedit;
+    if (send(ic, "raw")) {
+      s->selectionPending = true;
+      // Re-enter the shortcut after the queued letters have committed, just
+      // as later typing waits behind a candidate selection. Do not discard
+      // unfinished spelling when dictation starts.
+      s->deferredKeys.push_back({event.rawKey(), event.isRelease(), event.time()});
+      ic->inputPanel().setCandidateList(nullptr);
+      panel(ic, s);
+      return true;
+    }
+    if (!fallback.empty())
+      ic->commitString(fallback);
+    return false;
+  }
   void startVoice(InputContext *ic, bool hold) {
-    if (voiceRecording_ || ic->capabilityFlags().test(CapabilityFlag::Password))
+    if (voicePending_ || ic->capabilityFlags().test(CapabilityFlag::Password))
       return;
     auto *s = state(ic);
-    if (!s->preedit.empty()) {
-      send(ic, "reset");
-      s->preedit.clear();
-      s->cursor = 0;
-      clearDisplayState(s);
-      ic->inputPanel().reset();
-      panel(ic, s);
-    }
+    if (s->vMode || s->vMenu != VMenu::None)
+      cancelVMode(ic, "voice input started");
+    ++s->epoch;
+    s->selectionPending = false;
+    s->deferredKeys.clear();
+    send(ic, "reset");
+    s->preedit.clear();
+    s->cursor = 0;
+    clearDisplayState(s);
+    ic->inputPanel().reset();
     voiceRecording_ = true;
+    voicePending_ = true;
     voiceHold_ = hold;
     voiceSession_ = s->id;
     voiceEpoch_ = s->epoch;
-    startProcess({WETYPE_VOICE, "start"});
+    voiceToken_ = std::to_string(getpid()) + "-" +
+                  std::to_string(now(CLOCK_MONOTONIC));
+    voiceText_.clear();
+    voiceError_.clear();
+    voicePhase_ = "recording";
+    voiceLevel_ = 0;
+    voiceStatusUntil_ = 0;
+    voiceDaemonPid_ = 0;
+    lastVoiceVersion_ = 0;
+    if (!voiceControl("start", s->traditional))
+      startProcess({WETYPE_VOICE, "start", std::to_string(voiceSession_),
+                    std::to_string(voiceEpoch_), voiceToken_,
+                    s->traditional ? "1" : "0"});
+    panel(ic, s);
   }
-  void stopVoice() {
-    if (!voiceRecording_)
+  void stopVoice(bool immediate = false) {
+    if (!voicePending_)
       return;
     voiceRecording_ = false;
     voiceHold_ = false;
-    startProcess({WETYPE_VOICE, "stop", std::to_string(voiceSession_),
-                  std::to_string(voiceEpoch_)});
+    voicePhase_ = "recognizing";
+    if (!voiceControl(immediate ? "finish" : "stop"))
+      startProcess({WETYPE_VOICE, immediate ? "finish" : "stop", voiceToken_});
+    auto it = contexts_.find(voiceSession_);
+    if (it != contexts_.end())
+      if (auto *ic = it->second.get(); ic && ic->hasFocus())
+        panel(ic, ic->propertyFor(&factory_));
+  }
+  void cancelVoice(bool notify = true) {
+    if (notify && voicePending_ && !voiceControl("cancel"))
+      startProcess({WETYPE_VOICE, "cancel", voiceToken_});
+    voicePending_ = voiceRecording_ = voiceHold_ = false;
+    voiceText_.clear();
+    voiceToken_.clear();
+    voicePhase_.clear();
+    voiceError_.clear();
+    voiceStatusUntil_ = 0;
+    voiceDaemonPid_ = 0;
+    auto it = contexts_.find(voiceSession_);
+    if (it != contexts_.end())
+      if (auto *ic = it->second.get(); ic && ic->hasFocus())
+        panel(ic, ic->propertyFor(&factory_));
   }
   void receiveVoice() {
+    if (voicePending_ && voiceDaemonPid_ > 1 &&
+        kill(voiceDaemonPid_, 0) < 0 && errno == ESRCH) {
+      cancelVoice(false);
+      voiceError_ = "语音服务已退出，请重新启动语音输入";
+      voiceStatusUntil_ = now(CLOCK_MONOTONIC) + 4000000;
+      auto it = contexts_.find(voiceSession_);
+      if (it != contexts_.end())
+        if (auto *ic = it->second.get(); ic && ic->hasFocus())
+          panel(ic, ic->propertyFor(&factory_));
+      return;
+    }
+    if (voiceStatusUntil_ && now(CLOCK_MONOTONIC) >= voiceStatusUntil_)
+      cancelVoice();
     std::ifstream input(stateDirectory() / "voice-inbox.json");
     std::string bytes((std::istreambuf_iterator<char>(input)), {});
     if (bytes.empty() || bytes.size() > 65536)
       return;
     auto message = wire::parse(bytes);
+    if (voiceToken_.empty() || wire::str(message.get(), "token") != voiceToken_)
+      return;
     auto version = uint64_t(wire::number(message.get(), "version"));
     auto text = wire::str(message.get(), "text");
-    if (!version || version <= lastVoiceVersion_ || text.empty())
+    if (!version || version <= lastVoiceVersion_)
       return;
     lastVoiceVersion_ = version;
-    std::error_code error;
-    std::filesystem::remove(stateDirectory() / "voice-inbox.json", error);
+    // The producer atomically replaces this file. Removing an older version
+    // after reading it can otherwise delete a newer final result.
+    const auto daemon = wire::number(message.get(), "daemon_pid");
+    if (daemon > 1 && daemon <= INT_MAX)
+      voiceDaemonPid_ = daemon;
     const auto session = uint64_t(wire::number(message.get(), "session"));
     const auto epoch = uint64_t(wire::number(message.get(), "epoch"));
     auto it = contexts_.find(session);
@@ -945,11 +1086,37 @@ class WeType : public InputMethodEngine {
       return;
     auto *ic = it->second.get();
     if (!ic || !ic->hasFocus() ||
-        ic->capabilityFlags().test(CapabilityFlag::Password))
+        ic->capabilityFlags().test(CapabilityFlag::Password)) {
+      cancelVoice();
       return;
+    }
     auto *s = ic->propertyFor(&factory_);
-    if (s->active && s->epoch == epoch)
-      ic->commitString(text);
+    if (!s->active || s->epoch != epoch || session != voiceSession_ ||
+        epoch != voiceEpoch_) {
+      cancelVoice();
+      return;
+    }
+    const auto phase = wire::str(message.get(), "state");
+    voicePhase_ = phase;
+    voiceText_ = text;
+    voiceLevel_ = std::clamp<int>(wire::number(message.get(), "level"), 0, 100);
+    if (phase != "recording")
+      voiceRecording_ = voiceHold_ = false;
+    if (phase == "final" || phase == "error" || phase == "cancelled") {
+      voicePending_ = false;
+      voiceText_.clear();
+      voiceToken_.clear();
+      voiceDaemonPid_ = 0;
+      if (phase == "error") {
+        voiceError_ = wire::str(message.get(), "error", "语音输入失败");
+        voiceStatusUntil_ = now(CLOCK_MONOTONIC) + 4000000;
+      } else
+        voicePhase_.clear();
+      panel(ic, s);
+      if (phase == "final" && !text.empty())
+        ic->commitString(text);
+    } else
+      panel(ic, s);
   }
   static void clearVMenu(State *s) {
     s->vMenu = VMenu::None;
@@ -1301,14 +1468,19 @@ class WeType : public InputMethodEngine {
     return s;
   }
   void panel(InputContext *ic, State *s) {
+    const bool voice = voicePending_ && voiceSession_ == s->id &&
+                       voiceEpoch_ == s->epoch;
     Text aux;
-    if (s->vMenu != VMenu::None)
+    if (voice)
+      aux = Text("语音输入 " + std::string(voiceLevel_ / 12, '|'));
+    else if (s->vMenu != VMenu::None)
       aux = Text(s->vMenuTitle);
     else if (s->vCalculator)
       aux = Text("计算：输入表达式，空格选取结果");
     ic->inputPanel().setAuxUp(aux);
     const std::string displayed =
-        !s->displayPreedit.empty() ? s->displayPreedit
+        voice ? voiceText_
+        : !s->displayPreedit.empty() ? s->displayPreedit
         : !s->vMode && *config_.input->mode == wetype_config::InputMode::Pinyin
             ? formatPinyinPreedit(s->preedit)
             : s->preedit;
@@ -1317,7 +1489,8 @@ class WeType : public InputMethodEngine {
     if (!displayed.empty()) {
       text.append(displayed);
       text.setCursor(
-          !s->displayPreedit.empty()
+          voice ? displayed.size()
+          : !s->displayPreedit.empty()
               ? std::min(s->displayCursor, displayed.size())
               : displayCursorForRaw(s->preedit, displayed, s->cursor));
     }
@@ -1331,7 +1504,15 @@ class WeType : public InputMethodEngine {
     // to see the composition in the input panel.
     ic->inputPanel().setPreedit(inlinePreedit ? Text() : text);
     Text status;
-    if (!displayed.empty() && (failed_ || !ready_))
+    if (voice)
+      status.append(voicePhase_ == "polishing"
+                        ? "正在整理… Enter 立即上屏 · Esc 取消"
+                    : voiceRecording_
+                        ? "正在聆听… 空格结束 · Esc 取消"
+                        : "正在识别… Enter 立即上屏 · Esc 取消");
+    else if (voiceSession_ == s->id && voiceStatusUntil_)
+      status.append(voiceError_);
+    else if (!displayed.empty() && (failed_ || !ready_))
       status.append(failed_ ? "WeTypeX 核心正在恢复…" : "WeTypeX 核心启动中…");
     ic->inputPanel().setAuxDown(status);
     if (s->preedit.empty() && !s->vMode)
@@ -1371,6 +1552,7 @@ class WeType : public InputMethodEngine {
     invalidateSessions();
   }
   void invalidateSessions() {
+    cancelVoice();
     restartNeedsOpen_ = true;
     for (auto &[id, ref] : contexts_)
       if (auto *ic = ref.get()) {
@@ -1797,9 +1979,12 @@ public:
         CLOCK_MONOTONIC, now(CLOCK_MONOTONIC) + 100000, 0,
         [this](auto *source, uint64_t time) {
           bool pending = false;
+          bool focused = false;
           for (auto &[id, ref] : contexts_)
             if (auto *ic = ref.get()) {
               auto *s = ic->propertyFor(&factory_);
+              focused |= s->active && ic->hasFocus() &&
+                         !ic->capabilityFlags().test(CapabilityFlag::Password);
               pending |= s->active && s->seq > s->applied;
               if (networkEnabled_ && ready_ && s->active && ic->hasFocus() &&
                   !s->preedit.empty() && s->seq == s->applied &&
@@ -1817,17 +2002,19 @@ public:
             if (!start())
               scheduleRestart();
           }
-          if (time >= syncTick_ + 1000000) {
+          if (time >= syncTick_ + (voicePending_ ? 40000 : 1000000)) {
             syncTick_ = time;
             receiveVoice();
           }
+          if (focused && networkEnabled_ && time >= voiceWarmTick_ + 60000000)
+            primeVoice();
           pollVModeWindow();
           if (networkEnabled_ && *config_.update->autoUpdate &&
               time >= updateTick_ + 3600000000ULL) {
             updateTick_ = time;
             startProcess({WETYPE_UPDATE});
           }
-          source->setTime(time + 100000);
+          source->setTime(time + (voicePending_ ? 40000 : 100000));
           source->setEnabled(true);
           return true;
         });
@@ -1863,6 +2050,7 @@ public:
     setConfig(raw);
   }
   void reloadConfig() override {
+    cancelVoice();
     reloadSettings();
     if (networkEnabled_)
       startSync();
@@ -1876,6 +2064,7 @@ public:
     }
   }
   ~WeType() override {
+    cancelVoice();
     languageModifierWatcher_.reset();
     timer_.reset();
     stop();
@@ -1910,12 +2099,15 @@ public:
     ic->statusArea().addAction(StatusGroup::InputMethod, &settingsAction_);
     if (ic->capabilityFlags().test(CapabilityFlag::Password))
       return;
+    primeVoice();
     panel(ic, current);
     send(ic, "open");
   }
   void reset(const InputMethodEntry &, InputContextEvent &e) override {
     auto *ic = e.inputContext();
     auto *s = state(ic);
+    if (voicePending_ && voiceSession_ == s->id)
+      cancelVoice();
     if (vModeSession_ == s->id)
       stopVModeWindow(s->active ? "input context reset"
                                 : "input method deactivated");
@@ -1941,6 +2133,8 @@ public:
   void deactivate(const InputMethodEntry &entry,
                   InputContextEvent &e) override {
     auto *s = state(e.inputContext());
+    if (voiceSession_ == s->id)
+      cancelVoice();
     if (e.type() == EventType::InputContextFocusOut && vModeSession_ == s->id &&
         s->vMode && !vModeNative_ &&
         instance_->lastFocusedInputContext() == nullptr) {
@@ -2021,6 +2215,14 @@ public:
     auto sym = key.sym();
     if (!s->active || ic->capabilityFlags().test(CapabilityFlag::Password))
       return;
+    if (networkEnabled_ && e.rawKey().states().test(KeyState::Repeat) &&
+        ((*config_.voice->launchShortcut &&
+          key.checkKeyList(*config_.voice->launchKey)) ||
+         (*config_.voice->holdShortcut &&
+          key.checkKeyList(*config_.voice->holdKey)))) {
+      e.filterAndAccept();
+      return;
+    }
     // A later key must not operate on the preedit awaiting a select reply.
     // Re-enter normal event processing after that reply has committed it.
     if (s->selectionPending && sym != FcitxKey_Escape) {
@@ -2036,7 +2238,7 @@ public:
     if (e.isRelease()) {
       auto releasedConfiguredKey = [&](const KeyList &keys) {
         return std::any_of(keys.begin(), keys.end(), [&](const Key &candidate) {
-          return key.isReleaseOfModifier(candidate);
+          return sym == candidate.sym() || key.isReleaseOfModifier(candidate);
         });
       };
       if (voiceRecording_ && voiceHold_ &&
@@ -2106,23 +2308,38 @@ public:
     }
     if (networkEnabled_ && *config_.voice->launchShortcut &&
         key.checkKeyList(*config_.voice->launchKey)) {
-      if (!voiceRecording_)
-        startVoice(ic, false);
-      else
+      if (voiceRecording_ && voiceHold_)
         voiceHold_ = false;
+      else if (voicePending_)
+        stopVoice(!voiceRecording_);
+      else if (!flushBeforeVoice(ic, e))
+        startVoice(ic, false);
       e.filterAndAccept();
       return;
     }
-    if (networkEnabled_ && !voiceRecording_ && *config_.voice->holdShortcut &&
+    if (networkEnabled_ && *config_.voice->holdShortcut &&
         key.checkKeyList(*config_.voice->holdKey)) {
-      startVoice(ic, true);
+      if (!voicePending_ && !flushBeforeVoice(ic, e))
+        startVoice(ic, true);
       e.filterAndAccept();
       return;
     }
-    if (voiceRecording_ && !key.isModifier()) {
-      stopVoice();
-      e.filterAndAccept();
-      return;
+    if (voicePending_ && !key.isModifier()) {
+      if (sym == FcitxKey_Escape) {
+        cancelVoice();
+        e.filterAndAccept();
+        return;
+      }
+      if (!key.states() &&
+          (sym == FcitxKey_space || sym == FcitxKey_Return ||
+           sym == FcitxKey_KP_Enter)) {
+        stopVoice(sym != FcitxKey_space || !voiceRecording_);
+        e.filterAndAccept();
+        return;
+      }
+      // Keep the first typed key and application shortcuts when the user
+      // leaves dictation, instead of silently swallowing them.
+      cancelVoice();
     }
     if (key.isModifier()) {
       s->modifierCandidate = sym;

@@ -252,7 +252,7 @@ def main():
                                symbols_by_name, lazy=True, slide=args.slide)
 
     for value, name in symbol_rows:
-        if value and name and (name.startswith(('_wxime_', '_business_', '_net_'))
+        if value and name and (name.startswith(('_wxime_', '_business_', '_net_', '_voice_engine_'))
                                or 'loguru' in name):
             lines.append(f'SYM {value+args.slide:x} {name}')
         elif value and name and any(name.startswith(p) for p in args.export_prefix):
@@ -309,7 +309,7 @@ def main():
 
     debug_names = {value: name for value, name in symbol_rows
                    if value and name and
-                   (name.startswith(('_wxime_', '_business_', '_net_')) or
+                   (name.startswith(('_wxime_', '_business_', '_net_', '_voice_engine_')) or
                     'SetReportExceptionCallBack' in name)}
     (args.output / 'image.macho').write_bytes(thin)
     (args.output / 'manifest.txt').write_text('\n'.join(lines) + '\n')

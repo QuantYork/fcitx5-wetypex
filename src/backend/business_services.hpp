@@ -122,6 +122,8 @@ static std::mutex business_task_mutex;
 static std::vector<unsigned char> business_task_response;
 
 static void business_log(int level, const char *message) {
+  if (getenv("WETYPE_VOICE_STREAM") && level < 3)
+    return;
   fprintf(stderr, "BUSINESS[%d] %s\n", level, message ? message : "");
 }
 static void business_init_callback(void *, int error, bool has_uin,
@@ -398,6 +400,7 @@ static bool save_business_identity(const char *path,
   return ok;
 }
 
+#include "native_voice.hpp"
 static void business_service() {
   const char *identity_path = getenv("WETYPE_IDENTITY_FILE");
   BusinessIdentity identity = load_business_identity(identity_path);
@@ -478,6 +481,20 @@ static void business_service() {
   if (business_init_error == 0 && business_init_uin) {
     identity.uin = business_init_uin.load();
     save_business_identity(identity_path, identity);
+  }
+  if (getenv("WETYPE_VOICE_STREAM")) {
+    if (business_init_error != 0 || !business_init_uin)
+      _exit(78);
+    if (!starting_uin) {
+      const auto uin = std::to_string(business_init_uin.load());
+      ((void (*)(const char *))syms.at("_business_reset_uin"))(uin.c_str());
+      // Apply the newly registered identity before its first voice request,
+      // as in the existing one-shot business path. This runs while capture
+      // is already in progress and is unnecessary on subsequent sessions.
+      usleep(750000);
+    }
+    native_voice::run();
+    _exit(0);
   }
   int pairing_task = -1;
   std::string collected_voice_text;

@@ -137,6 +137,18 @@ def install_ui_resources(archive, data):
     except ImportError:
         print('Install fontTools and Pillow to render original WeChat emoticons; text labels remain available.',file=sys.stderr)
 
+def install_voice_resources(archive, data):
+    directory=data/'fcitx5-wetypex/voice/vad'
+    directory.mkdir(parents=True,exist_ok=True)
+    prefix='WeType.app/Contents/Resources/vad/'
+    with zipfile.ZipFile(archive) as source:
+        for name in ('configure.16k.20221116.offline',
+                     'model_16k_20210121_iter07.bin','CMS_40dim_chi.bin'):
+            target=directory/name
+            temporary=target.with_suffix(target.suffix+'.tmp')
+            temporary.write_bytes(source.read(prefix+name))
+            temporary.replace(target)
+
 def stream_digest(stream, algorithm):
     result=hashlib.new(algorithm)
     for block in iter(lambda: stream.read(1024*1024), b''):
@@ -157,6 +169,13 @@ def validate_runtime(target):
     bwrap=shutil.which('bwrap')
     if not bwrap:
         return False,'bubblewrap is not installed'
+    try:
+        report=subprocess.run([str(host),str(support),'network-info'],
+                              stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=10)
+        if not json.loads(report.stdout).get('utf8_json',False):
+            return False,'UTF-8 JSON compatibility check failed; upgrade the WeTypeX engine host'
+    except (subprocess.TimeoutExpired,ValueError,OSError):
+        return False,'unable to check UTF-8 JSON compatibility'
     with tempfile.TemporaryDirectory(prefix='.wetypex-check-') as work:
         command=[bwrap,'--unshare-net','--unshare-pid','--die-with-parent',
                  '--ro-bind','/usr','/usr','--symlink','usr/lib','/lib',
@@ -288,6 +307,7 @@ def main():
             with urllib.request.urlopen(URL,timeout=60) as response,archive.open('wb') as out:shutil.copyfileobj(response,out)
         if digest(archive)!=ARCHIVE_SHA:raise ValueError(f'Archive SHA-256 mismatch; expected the verified {UPSTREAM_VERSION} package')
         install_ui_resources(archive,data)
+        install_voice_resources(archive,data)
         if args.icons_only:
             print('Original UI assets installed in '+str(data/'fcitx5-wetypex/ui'))
             return 0

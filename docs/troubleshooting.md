@@ -30,6 +30,10 @@ fcitx5-wetypex-setup --archive /path/to/WeType_2.2.3_657.zip
 
 散列不匹配时不要绕过校验。下载或版本变化可能意味着 ABI 不兼容。
 
+## 界面正常，但中文没有候选或无法上屏
+
+运行 `fcitx5-wetypex-account network-info`，检查 `json_c_version` 和 `utf8_json`。后者应为 `true`。json-c 0.18 的严格模式存在将中文 UTF-8 字节误判为控制字符的问题，WeTypeX 在解析前做兼容转换并保留严格语法、UTF-8 和尾随数据校验。升级到包含该修复的构建即可使用系统原有 json-c；`fcitx5-wetypex-setup --check` 也会检查该兼容链路。
+
 ## 本地候选正常，但没有云候选
 
 先运行 `fcitx5-wetypex-account network-info`。默认构建应显示 `provider: bundled-static`、`ws: true`、`wss: true`；输出不需要读取配对身份，也不会联网。Ubuntu 24.04 的系统 libcurl 8.5 关闭了 WebSocket，修复版桥接使用自己的 libcurl。连接采用 Happy Eyeballs，并在网络/TLS 建连失败时于同一超时预算内尝试 IPv4；无需修改 `/etc/hosts` 固定上游 IP。
@@ -67,7 +71,27 @@ Ubuntu 20.04 自带 PipeWire 0.2，语音录制需要升级到提供 `pw-record`
 pw-record --rate 16000 --channels 1 --format s16 /tmp/wetypex-test.wav
 ```
 
-录制几秒后按 `Ctrl+C`，确认 WAV 非空。随后检查 `state/voice/last-record.log`。识别需要联网、有效账户身份和 FFmpeg 的 Opus 编码器。
+录制几秒后按 `Ctrl+C`，确认 WAV 非空。随后运行 `fcitx5-wetypex-voice status`，检查 `native_ready`、`vad`、`state` 和时间字段。录音错误见 `state/voice/capture.log`，原版宿主错误见 `state/voice/backend.log`。识别需要联网；首次使用会初始化设备身份。编码和分块由原版引擎完成，FFmpeg 仅用于已有音频文件的解码。原版 VAD 模型可用 `--icons-only` 更新，具体操作见[流式语音输入](voice-input.md)。
+
+## Electron 在 Wayland 下候选框固定在左上角
+
+先在同一个应用中对照 Fcitx 拼音，并确认 KDE“系统设置 → 键盘 → 虚拟键盘”选择了 Fcitx5。WeTypeX 使用 Fcitx 的面板定位；客户端提供的输入表面和光标矩形决定面板位置。
+
+对支持原生 Wayland 和 text-input-v3 的 Electron 应用，可仅在该应用的启动命令中使用：
+
+```bash
+env -u GTK_IM_MODULE -u QT_IM_MODULE application --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3
+```
+
+这里的 `application` 换成应用实际可执行文件。KWin 6.8 提供 text-input-v2/v3，旧版本上建议的 v1 参数不适用于这个组合。已用 KWin 6.8 的独立会话和原生 Wayland VS Code 验证 v3 路线：应用发送的光标矩形随编辑位置更新，候选框跟随插入点。
+
+部分应用内置的 Electron/Chromium 版本较旧，或启动器会覆盖参数。此时对该应用使用 XWayland，并提供对应的 Gtk 输入法模块：
+
+```bash
+env GTK_IM_MODULE=fcitx application --ozone-platform=x11
+```
+
+Arch 的模块包为 `fcitx5-gtk`，Debian/Ubuntu 通常使用 `fcitx5-frontend-gtk3`；版本应与当前 Fcitx 框架匹配。可把上述命令写入该应用的用户级 `.desktop` 启动项，保留原命令中的路径和占位参数。环境调整只用于对应应用，其他 Qt/Gtk 应用继续使用各自适合的输入方式。
 
 ## Wayland 下 V 工具栏闪退或不显示
 

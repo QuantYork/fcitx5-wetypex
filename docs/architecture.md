@@ -20,7 +20,7 @@ WeTypeX 将原版桌面输入核心接入 Fcitx5，同时让 Linux 桌面负责�
 | `fcitx5-wetypex-settings` | 独立设置窗口，与 Fcitx5 配置页共用配置 |
 | `libwetypexconfig.so` | Fcitx5 Qt6 配置页中的完整设置、账号与同步入口 |
 | `fcitx5-wetypex-ai` | 调用原版 AI 服务并打开问答窗口 |
-| `fcitx5-wetypex-voice` | PipeWire 录音、Opus 编码和识别结果投递 |
+| `fcitx5-wetypex-voice` | PipeWire 流式采集、原版语音引擎会话和结果投递 |
 
 ## 输入路径
 
@@ -54,7 +54,7 @@ WeTypeX 将原版桌面输入核心接入 Fcitx5，同时让 Linux 桌面负责�
 
 ## 语音与 AI
 
-语音由 `pw-record` 采集为 16 kHz 单声道 PCM，再由 FFmpeg 编码为 Opus。兼容层转换为原版 `#!OPUS_RAW_V1` 流并按原版序号、累计字节数和结束标志发送。结果经私有 inbox 回填当前聚焦输入框。
+语音由 `pw-record` 流式采集为 16 kHz 单声道 PCM，直接交给原版 `voice_engine_*` 接口，由原版实现 Opus 编码、VAD、请求序号、重试、平滑结果和最终整理。中间结果通过私有 inbox 更新预编辑，最终结果仅在同一会话、epoch、token 且仍有焦点时提交一次。控制采用同用户的 Unix socket；语音业务缓存与设备同步分离，宿主空闲时释放。具体操作和资源准备见[流式语音输入](voice-input.md)。
 
 AI 使用目标应用的 surrounding text 作为问题。原版服务返回服务器渲染的 HTML；Linux 窗口移除依赖 `WKWebView` 消息桥的渐显脚本，保留正文和 Markdown 样式。窗口通用图标由设置工具从官方包提取，不随仓库发布。
 
