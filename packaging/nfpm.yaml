@@ -42,6 +42,7 @@ overrides:
       - python3-pil
       - fontconfig
       - libfontconfig1
+      - libwayland-client0
       - pipewire-bin | pipewire
       - ffmpeg
       - wl-clipboard
@@ -67,6 +68,7 @@ overrides:
       - python3-fonttools
       - python3-pillow
       - fontconfig
+      - libwayland-client
       - pipewire-utils
       - /usr/bin/ffmpeg
       - wl-clipboard
