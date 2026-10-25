@@ -73,6 +73,14 @@ pw-record --rate 16000 --channels 1 --format s16 /tmp/wetypex-test.wav
 
 录制几秒后按 `Ctrl+C`，确认 WAV 非空。随后运行 `fcitx5-wetypex-voice status`，检查 `native_ready`、`vad`、`state` 和时间字段。录音错误见 `state/voice/capture.log`，原版宿主错误见 `state/voice/backend.log`。识别需要联网；首次使用会初始化设备身份。编码和分块由原版引擎完成，FFmpeg 仅用于已有音频文件的解码。原版 VAD 模型可用 `--icons-only` 更新，具体操作见[流式语音输入](voice-input.md)。
 
+## 输入框周期性失焦，候选框消失并留下拼音
+
+若 Edge、其他编辑器和普通 Fcitx 拼音也受影响，先检查桌面窗口激活记录，而不只是输入法引擎。Ubuntu 26.04、Plasma/KWin 6.6.6、wl-clipboard 2.2.1 下曾观察到，启用设备剪贴板同步时，`wl-paste` 每隔几秒创建临时窗口、获得焦点，然后马上退出。这个短暂失焦会打断未完成的拼音输入。
+
+同步守护进程在 GNOME/KDE 下使用现有 Qt/XWayland 剪贴板助手，避免运行可能创建窗口的 `wl-paste` 协议探测或读取，并对远端剪贴板写入采用同样的无窗口路径。读取失败时跳过本轮，不再回退到可见窗口。此路径需要可用的 XWayland、`DISPLAY` 和可读的 `XAUTHORITY`；条件不满足时相关剪贴板同步会跳过，本地输入仍可使用。
+
+升级后需要确保旧的 `fcitx5-wetypex-syncd` 进程已经退出。KDE Wayland 可保存工作后注销并重新登录；只重新加载配置不一定会替换仍在运行的旧同步进程。重新测试时，分别在浏览器和编辑器中输入拼音、等待至少 10 秒，确认焦点和候选框保持。
+
 ## Electron 在 Wayland 下候选框固定在左上角
 
 先在同一个应用中对照 Fcitx 拼音，并确认 KDE“系统设置 → 键盘 → 虚拟键盘”选择了 Fcitx5。WeTypeX 使用 Fcitx 的面板定位；客户端提供的输入表面和光标矩形决定面板位置。
