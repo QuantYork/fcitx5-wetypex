@@ -2031,7 +2031,8 @@ public:
             if (auto *ic = ref.get()) {
               auto *s = ic->propertyFor(&factory_);
               if (s->initialPanelDeadline) {
-                if (!s->active || !ic->hasFocus()) {
+                if (!s->active || !ic->hasFocus() ||
+                    ic->capabilityFlags().test(CapabilityFlag::Password)) {
                   s->initialPanelDeadline = 0;
                   s->initialPanelShown = false;
                 } else if (time >= s->initialPanelDeadline)
