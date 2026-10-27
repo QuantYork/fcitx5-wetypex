@@ -12,6 +12,7 @@
 #include <poll.h>
 #include <string>
 #include <sys/socket.h>
+#include <sys/eventfd.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <unistd.h>
@@ -22,6 +23,8 @@ class ServiceTransport {
     uint64_t active = 0;
   };
   int server_ = -1;
+  int wake_ = -1;
+  bool pendingUpdate_ = false;
   std::map<int, Peer> peers_;
   std::string input_;
   std::deque<std::pair<int, std::string>> ready_;
@@ -50,6 +53,7 @@ class ServiceTransport {
 
 public:
   ServiceTransport() {
+    wake_ = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
     server_ = socket(AF_UNIX, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
     sockaddr_un address{};
     address.sun_family = AF_UNIX;
@@ -67,6 +71,8 @@ public:
     }
   }
   ~ServiceTransport() {
+    if (wake_ >= 0)
+      close(wake_);
     for (auto &[fd, p] : peers_)
       close(fd);
     if (server_ >= 0) {
@@ -74,9 +80,25 @@ public:
       unlink("/work/control.sock");
     }
   }
+  bool supportsUpdates() const { return wake_ >= 0; }
+  void notify() const {
+    if (wake_ < 0)
+      return;
+    const uint64_t value = 1;
+    while (write(wake_, &value, sizeof(value)) < 0 && errno == EINTR) {
+    }
+  }
   bool next(std::string &line, int &source) {
     while (ready_.empty()) {
+      if (pendingUpdate_) {
+        pendingUpdate_ = false;
+        source = -1;
+        line.clear();
+        return true;
+      }
       std::vector<pollfd> fds = {{STDIN_FILENO, POLLIN, 0}};
+      if (wake_ >= 0)
+        fds.push_back({wake_, POLLIN, 0});
       if (server_ >= 0)
         fds.push_back({server_, POLLIN, 0});
       for (auto &[fd, p] : peers_)
@@ -89,6 +111,15 @@ public:
         return false;
       }
       for (auto &f : fds) {
+        if (f.fd == wake_) {
+          if (f.revents & POLLIN) {
+            uint64_t value;
+            while (read(wake_, &value, sizeof(value)) < 0 && errno == EINTR) {
+            }
+            pendingUpdate_ = true;
+          }
+          continue;
+        }
         if (f.fd == server_) {
           if (f.revents & POLLIN) {
             int peer = accept4(server_, nullptr, nullptr,

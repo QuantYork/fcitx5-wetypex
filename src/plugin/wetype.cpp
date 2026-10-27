@@ -212,6 +212,9 @@ struct DeferredKey {
 enum class VMenu { None, Main, Clipboard, Hotwords, SymbolGroups, Symbols };
 struct State : InputContextProperty {
   uint64_t id, epoch = 1, seq = 0, applied = 0, revision = 0, inputSeq = 0;
+  uint64_t appliedUpdate = 0;
+  uint64_t initialPanelDeadline = 0;
+  bool initialPanelShown = false;
   uint64_t cloudPollUntil = 0, lastCloudPoll = 0;
   int candidatePage = 0, candidateCursor = 0;
   std::string preedit;
@@ -232,8 +235,6 @@ struct State : InputContextProperty {
   std::string vMenuTitle;
   std::vector<std::pair<std::string, std::string>> vMenuEntries;
   bool active = false;
-  bool initialPanelShown = false, initialPanelTimedOut = false;
-  std::unique_ptr<EventSourceTime> initialPanelTimer;
   KeySym modifierCandidate = FcitxKey_None;
   TrackableObjectReference<InputContext> ic;
   State(uint64_t n, InputContext &context) : id(n), ic(context.watch()) {}
@@ -282,7 +283,7 @@ class WeType : public InputMethodEngine {
   std::unique_ptr<EventSourceIO> reader_, writer_;
   std::unique_ptr<EventSourceTime> timer_;
   std::unique_ptr<HandlerTableEntry<EventHandler>> languageModifierWatcher_;
-  bool ready_ = false, failed_ = false;
+  bool ready_ = false, failed_ = false, backendUpdates_ = false;
   uint64_t activity_ = 0;
   uint64_t restartAt_ = 0, restartBackoff_ = 250000;
   bool restartNeedsOpen_ = false;
@@ -1478,41 +1479,37 @@ class WeType : public InputMethodEngine {
     const bool voice = voicePending_ && voiceSession_ == s->id &&
                        voiceEpoch_ == s->epoch;
     const auto candidates = ic->inputPanel().candidateList();
-    const bool hasCandidates = candidates && candidates->size() > 0;
-    if (s->preedit.empty() || voice || s->vMode || s->vMenu != VMenu::None) {
-      s->initialPanelTimer.reset();
-      s->initialPanelShown = s->initialPanelTimedOut = false;
-    } else if (!s->initialPanelShown && !inlinePreedit && !hasCandidates &&
-               s->seq > s->applied && ready_ && !failed_ &&
-               !s->initialPanelTimedOut) {
-      // Do not map a tiny preedit-only popup just before local candidates
-      // arrive. Bound the wait from the first key, not from the latest key.
-      if (!s->initialPanelTimer) {
-        auto ref = ic->watch();
-        const auto epoch = s->epoch;
-        s->initialPanelTimer = instance_->eventLoop().addTimeEvent(
-            CLOCK_MONOTONIC, now(CLOCK_MONOTONIC) + 100000, 1000,
-            [this, ref, epoch](EventSourceTime *source, uint64_t) {
-              source->setEnabled(false);
-              auto *target = ref.get();
-              if (!target)
-                return true;
-              auto *current = state(target);
-              if (current->epoch == epoch && current->active &&
-                  target->hasFocus()) {
-                current->initialPanelTimedOut = true;
-                panel(target, current);
-              }
-              return true;
-            });
+    if (s->preedit.empty() || inlinePreedit || voice || s->vMode ||
+        s->vMenu != VMenu::None) {
+      s->initialPanelDeadline = 0;
+      s->initialPanelShown = false;
+    } else if (!s->initialPanelShown &&
+               (!candidates || !candidates->size()) &&
+               s->inputSeq > s->applied && !failed_) {
+      const auto time = now(CLOCK_MONOTONIC);
+      if (!s->initialPanelDeadline) {
+        // Usually the real core replies within a millisecond. Let that
+        // reply populate the first popup instead of mapping a tiny window.
+        // One frame bounds feedback for a slow or still-starting core.
+        s->initialPanelDeadline = time + 16000;
+        if (timer_) {
+          timer_->setAccuracy(1000);
+          timer_->setTime(std::min(timer_->time(), s->initialPanelDeadline));
+        }
       }
-      ic->inputPanel().reset();
-      ic->updatePreedit();
-      ic->updateUserInterface(UserInterfaceComponent::InputPanel);
-      return;
-    } else if (!s->preedit.empty()) {
+      if (time < s->initialPanelDeadline) {
+        const bool visible = !ic->inputPanel().empty();
+        ic->inputPanel().reset();
+        ic->updatePreedit();
+        if (visible)
+          ic->updateUserInterface(UserInterfaceComponent::InputPanel);
+        return;
+      }
       s->initialPanelShown = true;
-      s->initialPanelTimer.reset();
+      s->initialPanelDeadline = 0;
+    } else {
+      s->initialPanelShown = true;
+      s->initialPanelDeadline = 0;
     }
     Text aux;
     if (voice)
@@ -1575,6 +1572,7 @@ class WeType : public InputMethodEngine {
       child_ = -1;
     }
     ready_ = false;
+    backendUpdates_ = false;
     restartAt_ = 0;
     outbound_.clear();
     inbound_.clear();
@@ -1597,9 +1595,10 @@ class WeType : public InputMethodEngine {
       if (auto *ic = ref.get()) {
         auto *s = ic->propertyFor(&factory_);
         ++s->epoch;
-        s->initialPanelTimer.reset();
-        s->initialPanelShown = s->initialPanelTimedOut = false;
         s->seq = s->applied = s->inputSeq = 0;
+        s->appliedUpdate = 0;
+        s->initialPanelDeadline = 0;
+        s->initialPanelShown = false;
         s->selectionPending = false;
         s->deferredKeys.clear();
         s->preedit.clear();
@@ -1744,6 +1743,7 @@ class WeType : public InputMethodEngine {
       s->inputSeq = s->seq;
     wire::put(json.get(), "epoch", int64_t(s->epoch));
     wire::put(json.get(), "op", std::string(op));
+    wire::put(json.get(), "candidate_updates", true);
     wire::put(json.get(), "key", key);
     wire::put(json.get(), "index", int64_t(index));
     wire::put(json.get(), "revision", revision);
@@ -1815,6 +1815,7 @@ class WeType : public InputMethodEngine {
       return;
     if (wire::str(j.get(), "event") == "ready") {
       ready_ = true;
+      backendUpdates_ = wire::number(j.get(), "candidate_updates", 0);
       failed_ = false;
       restartBackoff_ = 250000;
       activity_ = now(CLOCK_MONOTONIC);
@@ -1840,9 +1841,13 @@ class WeType : public InputMethodEngine {
     auto *s = state(ic);
     auto seq = uint64_t(wire::number(j.get(), "seq"));
     auto respEpoch = uint64_t(wire::number(j.get(), "epoch"));
-    if (respEpoch != s->epoch || seq <= s->applied || seq > s->seq)
+    const auto update = uint64_t(wire::number(j.get(), "update_id"));
+    const bool pushed = wire::str(j.get(), "event") == "update";
+    if (respEpoch != s->epoch || seq < s->applied || seq > s->seq ||
+        (seq == s->applied && (!pushed || update <= s->appliedUpdate)))
       return;
     s->applied = seq;
+    s->appliedUpdate = update;
     activity_ = now(CLOCK_MONOTONIC);
     if (!s->active || !ic->hasFocus() ||
         ic->capabilityFlags().test(CapabilityFlag::Password))
@@ -2021,13 +2026,24 @@ public:
         [this](auto *source, uint64_t time) {
           bool pending = false;
           bool focused = false;
+          uint64_t panelWake = 0;
           for (auto &[id, ref] : contexts_)
             if (auto *ic = ref.get()) {
               auto *s = ic->propertyFor(&factory_);
+              if (s->initialPanelDeadline) {
+                if (!s->active || !ic->hasFocus()) {
+                  s->initialPanelDeadline = 0;
+                  s->initialPanelShown = false;
+                } else if (time >= s->initialPanelDeadline)
+                  panel(ic, s);
+                if (s->initialPanelDeadline &&
+                    (!panelWake || s->initialPanelDeadline < panelWake))
+                  panelWake = s->initialPanelDeadline;
+              }
               focused |= s->active && ic->hasFocus() &&
                          !ic->capabilityFlags().test(CapabilityFlag::Password);
               pending |= s->active && s->seq > s->applied;
-              if (networkEnabled_ && ready_ && s->active && ic->hasFocus() &&
+              if (networkEnabled_ && !backendUpdates_ && ready_ && s->active && ic->hasFocus() &&
                   !s->preedit.empty() && s->seq == s->applied &&
                   time < s->cloudPollUntil &&
                   time >= s->lastCloudPoll + 100000) {
@@ -2055,7 +2071,9 @@ public:
             updateTick_ = time;
             startProcess({WETYPE_UPDATE});
           }
-          source->setTime(time + (voicePending_ ? 40000 : 100000));
+          const auto next = time + (voicePending_ ? 40000 : 100000);
+          source->setAccuracy(panelWake ? 1000 : 0);
+          source->setTime(panelWake ? std::min(next, panelWake) : next);
           source->setEnabled(true);
           return true;
         });
@@ -2108,9 +2126,6 @@ public:
     cancelVoice();
     languageModifierWatcher_.reset();
     timer_.reset();
-    for (auto &[id, ref] : contexts_)
-      if (auto *ic = ref.get())
-        ic->propertyFor(&factory_)->initialPanelTimer.reset();
     stop();
     stopSync();
   }
@@ -2159,8 +2174,8 @@ public:
     s->selectionPending = false;
     s->deferredKeys.clear();
     ++s->epoch;
-    s->initialPanelTimer.reset();
-    s->initialPanelShown = s->initialPanelTimedOut = false;
+    s->initialPanelDeadline = 0;
+    s->initialPanelShown = false;
     s->preedit.clear();
     s->cursor = 0;
     clearDisplayState(s);
@@ -2794,9 +2809,8 @@ public:
       s->preedit.insert(s->cursor, text);
       ++s->cursor;
       clearDisplayState(s);
-      // Cloud replies are asynchronous and can lag well behind a keystroke.
-      // Keep refreshing the merged list while the composition stays open.
-      if ((lower || upper) && networkEnabled_)
+      // New cores push asynchronous candidates; older ones retain polling.
+      if ((lower || upper) && networkEnabled_ && !backendUpdates_)
         s->cloudPollUntil = now(CLOCK_MONOTONIC) + 8000000;
       send(ic, "key", text);
       panel(ic, s);
