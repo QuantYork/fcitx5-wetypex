@@ -232,6 +232,8 @@ struct State : InputContextProperty {
   std::string vMenuTitle;
   std::vector<std::pair<std::string, std::string>> vMenuEntries;
   bool active = false;
+  bool initialPanelShown = false, initialPanelTimedOut = false;
+  std::unique_ptr<EventSourceTime> initialPanelTimer;
   KeySym modifierCandidate = FcitxKey_None;
   TrackableObjectReference<InputContext> ic;
   State(uint64_t n, InputContext &context) : id(n), ic(context.watch()) {}
@@ -1468,8 +1470,50 @@ class WeType : public InputMethodEngine {
     return s;
   }
   void panel(InputContext *ic, State *s) {
+    const bool inlinePreedit =
+        *config_.appearance->preeditPosition !=
+            wetype_config::PreeditPosition::Candidate &&
+        ic->capabilityFlags().test(CapabilityFlag::Preedit) &&
+        ic->isPreeditEnabled();
     const bool voice = voicePending_ && voiceSession_ == s->id &&
                        voiceEpoch_ == s->epoch;
+    const auto candidates = ic->inputPanel().candidateList();
+    const bool hasCandidates = candidates && candidates->size() > 0;
+    if (s->preedit.empty() || voice || s->vMode || s->vMenu != VMenu::None) {
+      s->initialPanelTimer.reset();
+      s->initialPanelShown = s->initialPanelTimedOut = false;
+    } else if (!s->initialPanelShown && !inlinePreedit && !hasCandidates &&
+               s->seq > s->applied && ready_ && !failed_ &&
+               !s->initialPanelTimedOut) {
+      // Do not map a tiny preedit-only popup just before local candidates
+      // arrive. Bound the wait from the first key, not from the latest key.
+      if (!s->initialPanelTimer) {
+        auto ref = ic->watch();
+        const auto epoch = s->epoch;
+        s->initialPanelTimer = instance_->eventLoop().addTimeEvent(
+            CLOCK_MONOTONIC, now(CLOCK_MONOTONIC) + 100000, 1000,
+            [this, ref, epoch](EventSourceTime *source, uint64_t) {
+              source->setEnabled(false);
+              auto *target = ref.get();
+              if (!target)
+                return true;
+              auto *current = state(target);
+              if (current->epoch == epoch && current->active &&
+                  target->hasFocus()) {
+                current->initialPanelTimedOut = true;
+                panel(target, current);
+              }
+              return true;
+            });
+      }
+      ic->inputPanel().reset();
+      ic->updatePreedit();
+      ic->updateUserInterface(UserInterfaceComponent::InputPanel);
+      return;
+    } else if (!s->preedit.empty()) {
+      s->initialPanelShown = true;
+      s->initialPanelTimer.reset();
+    }
     Text aux;
     if (voice)
       aux = Text("语音输入 " + std::string(voiceLevel_ / 12, '|'));
@@ -1494,11 +1538,6 @@ class WeType : public InputMethodEngine {
               ? std::min(s->displayCursor, displayed.size())
               : displayCursorForRaw(s->preedit, displayed, s->cursor));
     }
-    const bool inlinePreedit =
-        *config_.appearance->preeditPosition !=
-            wetype_config::PreeditPosition::Candidate &&
-        ic->capabilityFlags().test(CapabilityFlag::Preedit) &&
-        ic->isPreeditEnabled();
     ic->inputPanel().setClientPreedit(inlinePreedit ? text : Text());
     // Clients without inline preedit (including some terminal setups) need
     // to see the composition in the input panel.
@@ -1558,6 +1597,8 @@ class WeType : public InputMethodEngine {
       if (auto *ic = ref.get()) {
         auto *s = ic->propertyFor(&factory_);
         ++s->epoch;
+        s->initialPanelTimer.reset();
+        s->initialPanelShown = s->initialPanelTimedOut = false;
         s->seq = s->applied = s->inputSeq = 0;
         s->selectionPending = false;
         s->deferredKeys.clear();
@@ -2067,6 +2108,9 @@ public:
     cancelVoice();
     languageModifierWatcher_.reset();
     timer_.reset();
+    for (auto &[id, ref] : contexts_)
+      if (auto *ic = ref.get())
+        ic->propertyFor(&factory_)->initialPanelTimer.reset();
     stop();
     stopSync();
   }
@@ -2115,6 +2159,8 @@ public:
     s->selectionPending = false;
     s->deferredKeys.clear();
     ++s->epoch;
+    s->initialPanelTimer.reset();
+    s->initialPanelShown = s->initialPanelTimedOut = false;
     s->preedit.clear();
     s->cursor = 0;
     clearDisplayState(s);

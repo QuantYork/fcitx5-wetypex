@@ -89,6 +89,18 @@ wl-copy --version
 
 升级后需要让旧的 `fcitx5-wetypex-syncd` 进程退出并启动新版本。KDE Wayland 可保存工作后注销并重新登录；只重新加载配置不一定会替换仍在运行的旧同步进程。重新测试时，在浏览器或编辑器中输入拼音、等待至少 10 秒，确认焦点和候选框保持。
 
+## 首次输入先出现拼音小框，再扩展为完整候选框
+
+选择“拼音显示位置 → 候选框内”时，首个按键的预编辑更新可能早于本地候选回复，产生短暂的仅拼音小框。这与屏幕 DPI 或窗口特效是不同问题。插件对首次候选面板最多等待 100ms：候选及时返回时直接显示完整面板；超时或有效回复没有候选时仍显示拼音，不无限等待云候选。已经显示的组合继续正常更新，失焦或重置后不会延迟弹出窗口。
+
+可用编译后的插件运行隔离回归测试：
+
+```bash
+PANEL_TEST_ADDON_DIR="$PWD/build" dbus-run-session -- python3 tests/test_initial_candidate_panel.py
+```
+
+测试需要 `python3-dbus`、`python3-gi` 和 `dbus-run-session`，仅使用临时用户目录和合成后端，不连接真实输入核心或账户。非 Debian 多架构系统可通过 `PANEL_TEST_SYSTEM_ADDON_DIR` 指定系统 Fcitx5 插件目录。
+
 ## Electron 在 Wayland 下候选框固定在左上角
 
 先在同一个应用中对照 Fcitx 拼音，并确认 KDE“系统设置 → 键盘 → 虚拟键盘”选择了 Fcitx5。WeTypeX 使用 Fcitx 的面板定位；客户端提供的输入表面和光标矩形决定面板位置。
